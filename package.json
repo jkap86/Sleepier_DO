@@ -1,13 +1,13 @@
 {
   "name": "sleepier",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd client && npm install && npm run build && cd .. && cd server && npm install && npm start",
-    "heroku-postbuild": "cd client && npm install && npm run build"
+    "start": "cd server && npm install && npm start",
+    "postinstall": "cd client && npm install && npm run build"
   },
   "author": "",
-  "license": "ISC",
-  "description": ""
+  "license": "ISC"
 }
