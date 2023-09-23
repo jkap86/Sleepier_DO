@@ -208,14 +208,14 @@ const LeagueInfo = ({
                 let median_win;
 
                 if (week < state.display_week) {
-                    roster_id_opp = lineupChecks[week]?.[league.league_id]?.lc_opp.matchup?.roster_id;
+                    roster_id_opp = lineupChecks[week]?.[league.league_id]?.lc_opp?.matchup?.roster_id;
 
                     pts_for = lineupChecks[week]?.[league.league_id]?.lc_user?.matchup?.points;
                     pts_against = lineupChecks[week]?.[league.league_id]?.lc_opp?.matchup?.points;
 
                     median_win = lineupChecks[week]?.[league.league_id]?.median_win
                 } else {
-                    roster_id_opp = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_opp.matchup?.roster_id;
+                    roster_id_opp = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_opp?.matchup?.roster_id;
 
                     pts_for = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_user?.proj_score_optimal;
                     pts_against = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_opp?.proj_score_optimal;
@@ -223,7 +223,7 @@ const LeagueInfo = ({
                     median_win = lineupChecks[week]?.['true-true']?.[league.league_id]?.median_win;
                 }
 
-                const opp_roster = league.rosters.find(r => r.roster_id === roster_id_opp)
+                const opp_roster = league.rosters?.find(r => r.roster_id === roster_id_opp)
 
                 return {
                     id: week,
