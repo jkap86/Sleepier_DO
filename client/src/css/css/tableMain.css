@@ -465,6 +465,10 @@ table.primary tbody tr.active2 td table.lineup td,
 table.primary tbody tr.active2 td table.subs td {
   font-size: 2.25rem;
 }
+table.primary tbody tr.active2 td table.lineup td.redb,
+table.primary tbody tr.active2 td table.subs td.redb {
+  font-size: 3rem;
+}
 table.primary table.secondary thead {
   filter: drop-shadow(0 0 1rem silver);
   position: sticky;

@@ -21,9 +21,8 @@ const userReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'FETCH_USER_START':
             return {
-                ...state,
-                isLoadingUser: true,
-                errorUser: null
+                ...initialState,
+                isLoadingUser: true
             };
         case 'FETCH_USER_SUCCESS':
             return {
@@ -82,11 +81,15 @@ const userReducer = (state = initialState, action) => {
 
             state.leagues
                 .forEach(league => {
-                    const updates_league = action.payload.find(l => l.league_id === league.league_id) || {}
+                    const updates_league = action.payload.find(l => l.league_id === league.league_id);
 
                     updated_leagues.push({
                         ...league,
-                        ...updates_league
+                        ...updates_league,
+                        userRoster: updates_league
+                            ? updates_league.rosters
+                                ?.find(r => r.user_id === state.user_id || r.co_owners?.find(co => co?.user_id === state.user_id))
+                            : league.userRoster
                     })
 
                 })
@@ -119,8 +122,7 @@ const userReducer = (state = initialState, action) => {
 
             return {
                 ...state,
-                leagues: synced_leagues,
-                syncing: false
+                leagues: synced_leagues
             }
         case 'SYNC_LEAGUES_FAILURE':
             return { ...state, syncing: false, errorSyncing: action.payload };

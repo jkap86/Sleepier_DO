@@ -4,45 +4,33 @@ import { filterLeagues } from '../../functions/filterLeagues';
 import { setState } from "../../redux/actions/state";
 import { getTrendColor } from "../../functions/misc";
 import LeagueInfo from './leagueInfo';
-import ProjectedRecords from "../ProjectedRecords/projectedRecords";
+import { useEffect } from "react";
 
 const Leagues = () => {
     const dispatch = useDispatch();
-    const { leagues } = useSelector(state => state.user);
-    const { type1, type2, state } = useSelector(state => state.main);
+    const { user_id, leagues } = useSelector(state => state.user);
+    const { type1, type2, state, allplayers, schedule, projections } = useSelector(state => state.main);
     const { filteredData } = useSelector(state => state.filteredData);
     const { itemActive, page, searched, recordType } = useSelector(state => state.leagues);
-    const { lineupChecks } = useSelector(state => state.lineups);
+    const { lineupChecks, rankings, includeLocked, includeTaxi, isLoadingProjectionDict } = useSelector(state => state.lineups);
 
-    const getProjection = (league_id) => {
+
+
+
+    const getProjection = (league_id, playoff_week_start) => {
         return Object.keys(lineupChecks)
-            .filter(key => parseInt(key) >= state.display_week)
+            .filter(key => parseInt(key) >= state.week && (parseInt(key) < playoff_week_start || playoff_week_start === 0))
             .reduce((acc, cur) => {
                 return {
-                    wins: acc.wins + (
-                        lineupChecks[cur]['true-true'][league_id]?.lc_user?.proj_score_optimal >
-                            lineupChecks[cur]['true-true'][league_id]?.lc_opp?.proj_score_optimal
-                            ? 1
-                            : 0
-                    ) + (lineupChecks[cur]['true-true'][league_id]?.median_win || 0),
-                    losses: acc.losses + (
-                        lineupChecks[cur]['true-true'][league_id]?.lc_user?.proj_score_optimal <
-                            lineupChecks[cur]['true-true'][league_id]?.lc_opp?.proj_score_optimal
-                            ? 1
-                            : 0
-                    ) + (lineupChecks[cur]['true-true'][league_id]?.median_loss || 0),
-                    ties: acc.ties + (
-                        (
-                            lineupChecks[cur]['true-true'][league_id]?.lc_user?.proj_score_optimal > 0
-                            && lineupChecks[cur]['true-true'][league_id]?.lc_opp?.proj_score_optimal > 0
-                            && lineupChecks[cur]['true-true'][league_id]?.lc_user?.proj_score_optimal ===
-                            lineupChecks[cur]['true-true'][league_id]?.lc_opp?.proj_score_optimal
-                        )
-                            ? 1
-                            : 0
-                    ),
-                    fpts: lineupChecks[cur]['true-true'][league_id]?.lc_user?.proj_score_optimal || 0,
-                    fpts_against: lineupChecks[cur]['true-true'][league_id]?.lc_opp?.proj_score_optimal || 0
+                    wins: acc.wins
+                        + (lineupChecks[cur]['true-true']?.[league_id]?.win || 0)
+                        + (lineupChecks[cur]['true-true']?.[league_id]?.median_win || 0),
+                    losses: acc.losses
+                        + (lineupChecks[cur]['true-true']?.[league_id]?.loss || 0)
+                        + (lineupChecks[cur]['true-true']?.[league_id]?.median_loss || 0),
+                    ties: acc.ties + (lineupChecks[cur]['true-true']?.[league_id]?.tie || 0),
+                    fpts: lineupChecks[cur]['true-true']?.[league_id]?.lc_user?.proj_score_optimal || 0,
+                    fpts_against: lineupChecks[cur]['true-true']?.[league_id]?.lc_opp?.proj_score_optimal || 0
                 }
             }, {
                 wins: 0,
@@ -75,9 +63,9 @@ const Leagues = () => {
         ?.filter(l => l.userRoster && (!searched.id || searched.id === l.league_id))
         ?.map(league => {
             const record = {
-                wins: league.userRoster.settings.wins + ((recordType === 'Projected Record' && getProjection(league.league_id)?.wins) || 0),
-                losses: league.userRoster.settings.losses + ((recordType === 'Projected Record' && getProjection(league.league_id)?.losses) || 0),
-                ties: league.userRoster.settings.ties + ((recordType === 'Projected Record' && getProjection(league.league_id)?.ties) || 0)
+                wins: league.userRoster.settings.wins + ((recordType === 'Projected Record' && getProjection(league.league_id, league.settings.playoff_week_start)?.wins) || 0),
+                losses: league.userRoster.settings.losses + ((recordType === 'Projected Record' && getProjection(league.league_id, league.settings.playoff_week_start)?.losses) || 0),
+                ties: league.userRoster.settings.ties + ((recordType === 'Projected Record' && getProjection(league.league_id, league.settings.playoff_week_start)?.ties) || 0)
             }
 
 
@@ -145,11 +133,11 @@ const Leagues = () => {
         ?.reduce(
             (acc, cur) => {
                 return {
-                    wins: acc.wins + (cur.userRoster?.settings?.wins || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id)?.wins) || 0),
-                    losses: acc.losses + (cur.userRoster?.settings?.losses || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id)?.losses) || 0),
-                    ties: acc.ties + (cur.userRoster?.settings?.ties || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id)?.ties) || 0),
-                    fpts: acc.fpts + parseFloat((cur.userRoster?.settings?.fpts || 0) + '.' + (cur.userRoster?.settings?.fpts_decimal || 0)) + ((recordType === 'Projected Record' && getProjection(cur.league_id)?.fpts) || 0),
-                    fpts_against: acc.fpts_against + parseFloat((cur.userRoster?.settings?.fpts_against || 0) + '.' + (cur.userRoster?.settings?.fpts_against_decimal || 0)) + ((recordType === 'Projected Record' && getProjection(cur.league_id)?.fpts_against) || 0),
+                    wins: acc.wins + (cur.userRoster?.settings?.wins || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id, cur.settings.playoff_week_start)?.wins) || 0),
+                    losses: acc.losses + (cur.userRoster?.settings?.losses || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id, cur.settings.playoff_week_start)?.losses) || 0),
+                    ties: acc.ties + (cur.userRoster?.settings?.ties || 0) + ((recordType === 'Projected Record' && getProjection(cur.league_id, cur.settings.playoff_week_start)?.ties) || 0),
+                    fpts: acc.fpts + parseFloat((cur.userRoster?.settings?.fpts || 0) + '.' + (cur.userRoster?.settings?.fpts_decimal || 0)) + ((recordType === 'Projected Record' && getProjection(cur.league_id, cur.settings.playoff_week_start)?.fpts) || 0),
+                    fpts_against: acc.fpts_against + parseFloat((cur.userRoster?.settings?.fpts_against || 0) + '.' + (cur.userRoster?.settings?.fpts_against_decimal || 0)) + ((recordType === 'Projected Record' && getProjection(cur.league_id, cur.settings.playoff_week_start)?.fpts_against) || 0),
                 }
             },
             {

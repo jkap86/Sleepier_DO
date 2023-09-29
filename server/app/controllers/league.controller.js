@@ -156,7 +156,11 @@ const updateLeagueMatchups = async (league_matchup) => {
             const new_roster = rosters.data.find(r => r.roster_id === roster_db.roster_id)
             updated_rosters.push({
                 ...roster_db,
-                players: new_roster?.players
+                starters: new_roster?.starters || roster_db?.starters,
+                players: new_roster?.players || roster_db?.players,
+                reserve: new_roster?.reserve || roster_db?.reserve,
+                taxi: new_roster?.taxi || roster_db?.taxi,
+
             })
         }
     } catch (err) {
@@ -177,7 +181,7 @@ const updateLeagueMatchups = async (league_matchup) => {
     }
     const updated_league = {
         league_id: league_matchup.league_id,
-        rosters: updated_rosters.data,
+        rosters: updated_rosters,
         ...updated_league_matchups
     }
 

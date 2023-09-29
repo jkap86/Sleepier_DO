@@ -79,9 +79,9 @@ module.exports = async (app) => {
         fs.writeFileSync('./projections.json', JSON.stringify(projections))
     }
 
-    if (process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL) {
         const minute = new Date().getMinutes()
-        const delay = minute % 15
+        const delay = (14 - (minute % 14)) * 60 * 1000;
 
         if (delay > 1) {
             setTimeout(async () => {

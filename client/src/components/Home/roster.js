@@ -168,7 +168,7 @@ const Roster = ({
         roster.players
             ?.forEach(player_id => {
                 const total_points = Object.keys(league)
-                    .filter(key => key.startsWith('matchups_') && parseInt(key.split('_')[1]) < state.display_week)
+                    .filter(key => key.startsWith('matchups_') && parseInt(key.split('_')[1]) < state.week)
                     .reduce(
                         (acc, cur) => {
                             const matchup = league[cur]?.find(m => m.roster_id === roster.roster_id)
@@ -194,7 +194,7 @@ const Roster = ({
             })
 
         return player_scoring_dict
-    }, [roster, league, state.display_week])
+    }, [roster, league, state.week])
 
 
 

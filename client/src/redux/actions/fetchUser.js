@@ -17,7 +17,13 @@ export const fetchUser = (username) => {
 
                 dispatch({ type: 'SET_STATE_MAIN', payload: { state: user.data.state } });
 
-                dispatch({ type: 'SET_STATE_LINEUPS', payload: { week: user.data.state.week } });
+                const week_lc = user.data.state.season_type === 'regular'
+                    ? user.data.state.leg
+                    : user.data.state.season_type.includes('post')
+                        ? 19
+                        : 1
+
+                dispatch({ type: 'SET_STATE_LINEUPS', payload: { week: week_lc } });
             } else {
                 dispatch({ type: 'FETCH_USER_FAILURE', payload: user.data });
             }
@@ -121,7 +127,10 @@ export const syncLeague = (league_id, user_id, username, week) => {
                             ...lineupChecks,
                             [week]: {
                                 ...lineupChecks[week],
-                                [league_id]: false
+                                [league_id]: {
+                                    ...lineupChecks[week][league_id],
+                                    edited: true
+                                }
                             }
                         }
                     }
@@ -136,7 +145,10 @@ export const syncLeague = (league_id, user_id, username, week) => {
                                 ...lineupChecks[week],
                                 [hash]: {
                                     ...lineupChecks[week][hash],
-                                    [league_id]: false
+                                    [league_id]: {
+                                        ...lineupChecks[week][hash][league_id],
+                                        edited: true
+                                    }
                                 }
                             }
                         }

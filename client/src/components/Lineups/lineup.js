@@ -27,6 +27,7 @@ const Lineup = ({
     const { user_id, username, syncing } = useSelector(state => state.user);
     const { itemActive2: itemActive, secondaryContent, rankings, week } = useSelector(state => state.lineups);
 
+    console.log({ [league.name]: league.league_id })
 
     const active_player = lineup_check?.find(x => `${x.slot}_${x.index}` === itemActive)?.current_player
 
@@ -104,6 +105,7 @@ const Lineup = ({
                 : slot.earlyInFlex || slot.lateNotInFlex ? 'yellow'
                     : ''
         )
+        console.log({ projections, week })
         return {
             id: slot.slot_index,
             list: !matchup ? [] : [
@@ -123,7 +125,7 @@ const Lineup = ({
                     }
                 },
                 {
-                    text: matchTeam(schedule[state.display_week]
+                    text: matchTeam(schedule[state.week]
                         ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[slot.current_player]?.team))
                         ?.team
                         ?.find(team => matchTeam(team.id) !== allplayers[slot.current_player]?.team)
@@ -240,7 +242,7 @@ const Lineup = ({
                                 }
                             },
                             {
-                                text: matchTeam(schedule[state.display_week]
+                                text: matchTeam(schedule[state.week]
                                     ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[so]?.team))
                                     ?.team
                                     ?.find(team => matchTeam(team.id) !== allplayers[so]?.team)
@@ -284,7 +286,7 @@ const Lineup = ({
                             }
                         },
                         {
-                            text: matchTeam(schedule[state.display_week]
+                            text: matchTeam(schedule[state.week]
                                 ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[opp_starter]?.team))
                                 ?.team
                                 ?.find(team => matchTeam(team.id) !== allplayers[opp_starter]?.team)
@@ -324,7 +326,7 @@ const Lineup = ({
                                 }
                             },
                             {
-                                text: matchTeam(schedule[state.display_week]
+                                text: matchTeam(schedule[state.week]
                                     ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[opp_starter.player]?.team))
                                     ?.team
                                     ?.find(team => matchTeam(team.id) !== allplayers[opp_starter.player]?.team)
@@ -364,7 +366,7 @@ const Lineup = ({
                                 }
                             },
                             {
-                                text: matchTeam(schedule[state.display_week]
+                                text: matchTeam(schedule[state.week]
                                     ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[ol.player]?.team))
                                     ?.team
                                     ?.find(team => matchTeam(team.id) !== allplayers[ol.player]?.team)

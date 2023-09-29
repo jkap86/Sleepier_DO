@@ -540,8 +540,14 @@ table.primary {
                 table.lineup,
                 table.subs {
                     td {
+                        &.redb {
+                            font-size: 3rem;
+                        }
+
                         font-size: 2.25rem;
                     }
+
+
                 }
             }
         }

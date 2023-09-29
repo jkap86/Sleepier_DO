@@ -11,12 +11,11 @@ import Leagues from "../Leagues/leagues";
 import Lineups from "../Lineups/lineups";
 import Leaguemates from "../Leaguemates/leaguemates";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
-import { getLineupCheck } from '../../functions/getLineupCheck';
 
 const Main = () => {
     const params = useParams();
     const dispatch = useDispatch();
-    const { user_id, leagues, matchups, isLoadingUser, isLoadingLeagues, isLoadingMatchups } = useSelector(state => state.user);
+    const { user_id, username, leagues, matchups, isLoadingUser, isLoadingLeagues, isLoadingMatchups, syncing } = useSelector(state => state.user);
     const { state, tab, allplayers, schedule, projections } = useSelector(state => state.main);
     const { filteredData } = useSelector(state => state.filteredData);
     const {
@@ -28,10 +27,15 @@ const Main = () => {
         recordType,
         isLoadingProjectionDict
     } = useSelector(state => state.lineups);
+    const { recordType: recordTypeLeagues } = useSelector(state => state.leagues);
 
-    const hash = `${includeTaxi}-${includeLocked}`;
-
+    if (leagues) {
+        console.log({ leagues })
+    }
+    console.log({ syncing, isLoadingProjectionDict })
     useEffect(() => {
+        // Fetch allplayers, schedule, projections only on load if they don't exist
+
         if (!allplayers) {
             dispatch(fetchMain('allplayers'));
         };
@@ -43,223 +47,151 @@ const Main = () => {
         if (!projections) {
             dispatch(fetchMain('projections'));
         };
-    }, [tab, allplayers, schedule, projections, dispatch])
+    }, [])
+    useEffect(() => {
+        const minute = new Date().getMinutes()
+        const delay = (15 - (minute % 15)) * 60 * 1000;
+
+        const timeout = setTimeout(() => {
+            const interval = setInterval(() => {
+                dispatch(fetchMain('projections'));
+            }, 15 * 60 * 1000)
+
+            return () => {
+                clearInterval(interval);
+            };
+        }, delay)
+
+        return () => {
+            clearTimeout(timeout);
+        }
+    }, [])
 
     useEffect(() => {
+        // Reset state everytime searched user changes
+
         dispatch(resetState);
     }, [params.username, dispatch])
 
     useEffect(() => {
-        if (!user_id) {
+        if (username?.toLowerCase() !== params.username?.toLowerCase()) {
             dispatch(fetchUser(params.username));
-        } else {
+        }
+    }, [username, params.username, dispatch])
+
+    useEffect(() => {
+        if (user_id && !leagues) {
             dispatch(fetchLeagues(user_id))
         }
-    }, [user_id, params.username, dispatch])
+    }, [dispatch, user_id, leagues])
 
     useEffect(() => {
         if (leagues) {
             dispatch(fetchFilteredData(leagues, tab, state.league_season));
+
+            if (!matchups) {
+                dispatch(fetchMatchups())
+            }
         }
 
-        if (!matchups) {
-            dispatch(fetchMatchups())
-        }
+
     }, [leagues, tab, state, matchups, dispatch])
 
+    const weeks = Array.from(Array(18).keys()).map(key => key + 1)
+        .filter(key => {
+            if (key < state.week) {
+                return !lineupChecks[key]
+            } else {
+                return !lineupChecks[key]?.['true-true']
+            }
+        })
+
+
+
+
+
     useEffect(() => {
-        if (leagues && allplayers && schedule && projections && matchups) {
+        const getProjectedRecords = (weeks_to_fetch, includeTaxi, includeLocked, league_ids) => {
 
-            let lineupChecks_week;
-
-            const getLineupChecksPrevWeek = (week, leagues) => {
-                lineupChecks_week = {};
-
-                leagues
-                    .filter(league => league[`matchups_${week}`])
-                    .map(league => {
-                        const matchup_user = league[`matchups_${week}`].find(m => m.roster_id === league.userRoster.roster_id);
-                        const matchup_opp = league[`matchups_${week}`].find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== league.userRoster.roster_id)
-
-                        const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
-                        const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
-
-                        const pts_rank = league[`matchups_${week}`]
-                            ?.sort((a, b) => b.points - a.points)
-                            ?.findIndex(matchup => {
-                                return matchup.matchup_id === league.userRoster.roster_id
-                            })
-
-                        const median_win = league.settings.league_average_match === 1
-                            && pts_rank + 1 >= (league.rosters.length / 2)
-                            ? 1
-                            : 0
-
-                        return lineupChecks_week[league.league_id] = {
-                            name: league.name,
-                            avatar: league.avatar,
-                            lc_user: lc_user,
-                            lc_opp: lc_opp,
-                            median_win: median_win
-                        }
-                    })
-
-                return lineupChecks_week
-            }
-
-            const getLineupChecksWeek = (week, leagues) => {
-                lineupChecks_week = {};
-
-                leagues
-                    .filter(league => league[`matchups_${week}`])
-                    .forEach(league => {
-                        const roster_id = league.rosters
-                            .find(roster => roster.user_id === user_id)?.roster_id
-
-                        const matchup_user = league[`matchups_${week}`]
-                            .find(m => m.roster_id === roster_id)
-
-                        const matchup_opp = league[`matchups_${week}`]
-                            .find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== roster_id)
-
-                        const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
-                        const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
-
-                        const standings = league[`matchups_${week}`]
-                            ?.map(matchup => {
-                                return matchup && getLineupCheck(matchup, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
-                            })
-                            ?.sort((a, b) => b[`proj_score_${recordType}`] - a[`proj_score_${recordType}`])
-
-                        const pts_rank = standings
-                            ?.findIndex(lc => {
-                                return lc.matchup.roster_id === roster_id
-                            })
-
-                        const median_win = league.settings.league_average_match === 1
-                            && pts_rank + 1 <= (league.rosters.length / 2)
-                            ? 1
-                            : 0
-
-                        const median_loss = league.settings.league_average_match === 1
-                            && pts_rank + 1 >= (league.rosters.length / 2)
-                            ? 1
-                            : 0
-
-                        lineupChecks_week[league.league_id] = {
-                            name: league.name,
-                            avatar: league.avatar,
-                            lc_user: lc_user,
-                            lc_opp: lc_opp,
-                            median_win: median_win,
-                            median_loss: median_loss,
-                            standings: Object.fromEntries(
-                                standings.map(s => {
-                                    const opp = standings.find(s2 => s2.matchup.matchup_id === s.matchup.matchup_id && s2.matchup.roster_id !== s.matchup.roster_id)
-                                    return [
-                                        s.matchup.roster_id,
-                                        {
-                                            wins: (s.proj_score_optimal > opp.proj_score_optimal ? 1 : 0)
-                                                + median_win,
-                                            losses: (s.proj_score_optimal < opp.proj_score_optimal ? 1 : 0)
-                                                + median_loss,
-                                            ties: (s.proj_score_optimal + opp.proj_score_optimal > 0 && s.proj_score_optimal === opp.proj_score_optimal)
-                                                ? 1
-                                                : 0,
-                                            fp: s.proj_score_optimal,
-                                            fpa: opp.proj_score_optimal
-                                        }
-                                    ]
-                                })
-                            )
-                        }
-                    })
-
-                return lineupChecks_week
-            }
-
-
-            if (week < state.display_week && leagues.find(league => !lineupChecks[week]?.[league.league_id])) {
-                lineupChecks_week = getLineupChecksPrevWeek(week, leagues.filter(league => !lineupChecks[week]?.[hash]?.[league.league_id]))
-
-                dispatch(
-                    setState(
-                        {
-                            lineupChecks: {
-                                ...lineupChecks,
-                                [week]: lineupChecks_week
-                            }
-                        }, 'LINEUPS'
-                    )
-                )
-
-            } else if (week >= state.display_week && leagues.find(league => !lineupChecks[week]?.[hash]?.[league.league_id])) {
-
-
-                lineupChecks_week = getLineupChecksWeek(week, leagues.filter(league => !lineupChecks[week]?.[hash]?.[league.league_id]))
-
-                dispatch(
-                    setState(
-                        {
-                            lineupChecks: {
-                                ...lineupChecks,
-                                [week]: {
-                                    ...lineupChecks[week],
-                                    [hash]: lineupChecks_week
-                                }
-                            }
-                        }, 'LINEUPS'
-                    )
-                )
-            } else if (!isLoadingProjectionDict) {
+            if (!isLoadingProjectionDict) {
                 dispatch(setState({ isLoadingProjectionDict: true }, 'LINEUPS'));
                 const worker = new Worker('/getRecordDictWeekWorker.js')
 
-                const weeks = Array.from(Array(18).keys()).map(key => key + 1)
-                    .filter(key => {
-                        if (key < state.display_week) {
-                            return !lineupChecks[key]
-                        } else {
-                            return !lineupChecks[key]?.['true-true']
-                        }
-                    })
+                console.log({ weeks_to_fetch })
 
-                if (weeks.length > 0) {
+                worker.postMessage({ weeks_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids })
 
-                    worker.postMessage({ weeks, state, leagues, allplayers, schedule, projections, includeLocked, includeTaxi, rankings, user_id, recordType })
+                const result_dict = {};
+                worker.onmessage = (e) => {
+                    const result = e.data;
 
-                    const result_dict = {};
-                    worker.onmessage = (e) => {
-                        const result = e.data;
+                    if (result.week < state.week) {
+                        console.log({ result_dict })
+                        result_dict[result.week] = {
+                            ...lineupChecks[result.week],
+                            ...result.projectedRecordWeek
+                        };
 
-                        if (result.week < state.display_week) {
-                            result_dict[result.week] = result.projectedRecordWeek;
+                        dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
+                    } else {
+                        result_dict[result.week] = {
+                            ...lineupChecks[result.week],
+                            [`${includeTaxi}-${includeLocked}`]: {
+                                ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
+                                ...result.projectedRecordWeek
+                            }
+                        };
 
-                            dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
-                        } else {
-                            result_dict[result.week] = {
-                                ...lineupChecks[week],
-                                ['true-true']: result.projectedRecordWeek
-                            };
-
-                            dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
-                        }
-                        if (result.week === 18) {
-                            dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
-
-                            return () => worker.terminate();
-                        }
+                        dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
                     }
+                    const lc_keys = Object.keys(lineupChecks).filter(key => lineupChecks[key][`${includeTaxi}-${includeLocked}`])
+
+                    const weeks_remaining = weeks_to_fetch
+                        .find(w => w !== result.week && !lc_keys.includes(w));
+
+                    console.log({ weeks_remaining })
+
+
+                    dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
+                    syncing && dispatch(setState({ syncing: false }, 'USER'));
+                    return () => worker.terminate();
+
                 }
             }
+
         }
-    }, [leagues, week, state, allplayers, schedule, projections, hash, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups])
+        if (leagues && allplayers && schedule && projections && matchups) {
+
+            if (
+                tab === 'lineups'
+                && (
+                    (week < state.week && (!lineupChecks[week] || (lineupChecks[week] && Object.keys(lineupChecks[week]).find(key => lineupChecks[week][key]?.edited === true))))
+                    || (week >= state.week && (!lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] || Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
+                )
+            ) {
+                const league_ids = (week < state.week && lineupChecks[week])
+                    ? Object.keys(lineupChecks[week]).filter(key => lineupChecks[week][key]?.edited === true)
+                    : (week >= state.week && lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`])
+                        ? Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)
+                        : false
+
+                console.log(`Syncing ${league_ids}`)
+                getProjectedRecords([week], includeTaxi, includeLocked, league_ids)
+            } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length > 0 && !isLoadingProjectionDict) {
+                console.log('Getting proj record ALL..')
+                getProjectedRecords([weeks[0]], true, true)
+            }
+
+
+        }
+    }, [leagues, week, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues])
 
 
     useEffect(() => {
         const lc_weeks = Object.keys(lineupChecks)
 
         if (lc_weeks.length === 18 && !lc_weeks.includes('totals')) {
+            console.log('Getting Totals...')
             const season_totals_all = {};
 
             leagues
@@ -271,7 +203,7 @@ const Main = () => {
                         .forEach(roster => {
 
                             const roster_season_totals = Object.keys(lineupChecks)
-                                .filter(key => parseInt(key) >= 1 && parseInt(key) <= 18)
+                                .filter(key => parseInt(key) >= league.settings.start_week && parseInt(key) < league.settings.playoff_week_start)
                                 .reduce((acc, cur) => {
                                     const cur_roster = lineupChecks[cur]?.['true-true']?.[league.league_id]?.standings?.[roster.roster_id]
                                     return {
@@ -282,11 +214,11 @@ const Main = () => {
                                         fpa: acc.fpa + (cur_roster?.fpa || 0)
                                     }
                                 }, {
-                                    wins: 0,
-                                    losses: 0,
-                                    ties: 0,
-                                    fp: 0,
-                                    fpa: 0
+                                    wins: roster.settings.wins,
+                                    losses: roster.settings.losses,
+                                    ties: roster.settings.ties,
+                                    fp: parseFloat(roster.settings.fpts + '.' + (roster.settings.fpts_decimal || 0)),
+                                    fpa: parseFloat(roster.settings.fpts_against + '.' + (roster.settings.fpts_against_decimal || 0))
                                 })
 
                             league_season_totals[roster.roster_id] = {
@@ -311,6 +243,7 @@ const Main = () => {
             )
         }
     }, [dispatch, lineupChecks])
+
 
 
     let display;

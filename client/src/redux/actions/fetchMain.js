@@ -7,6 +7,9 @@ export const fetchMain = (item) => {
         try {
             const main = await axios.get(`/main/${item}`);
 
+            if (item === 'projections') {
+                console.log(main.data[0].filter(d => d.week === 4 && d.player_id === '8135'))
+            }
             const data = item !== 'projections' ? main.data[0] : main.data[0].reduce((result, item) => {
                 const { week, player_id, injury_status, ...stats } = item;
 

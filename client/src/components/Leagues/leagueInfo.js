@@ -205,15 +205,18 @@ const LeagueInfo = ({
                 let roster_id_opp;
                 let pts_for;
                 let pts_against;
+                let win, loss, tie;
                 let median_win;
+                let median_loss;
 
-                if (week < state.display_week) {
+                if (week < state.week) {
                     roster_id_opp = lineupChecks[week]?.[league.league_id]?.lc_opp?.matchup?.roster_id;
 
                     pts_for = lineupChecks[week]?.[league.league_id]?.lc_user?.matchup?.points;
                     pts_against = lineupChecks[week]?.[league.league_id]?.lc_opp?.matchup?.points;
 
                     median_win = lineupChecks[week]?.[league.league_id]?.median_win
+                    median_loss = lineupChecks[week]?.[league.league_id]?.median_loss
                 } else {
                     roster_id_opp = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_opp?.matchup?.roster_id;
 
@@ -221,6 +224,7 @@ const LeagueInfo = ({
                     pts_against = lineupChecks[week]?.['true-true']?.[league.league_id]?.lc_opp?.proj_score_optimal;
 
                     median_win = lineupChecks[week]?.['true-true']?.[league.league_id]?.median_win;
+                    median_loss = lineupChecks[week]?.['true-true']?.[league.league_id]?.median_loss;
                 }
 
                 const opp_roster = league.rosters?.find(r => r.roster_id === roster_id_opp)
@@ -253,17 +257,21 @@ const LeagueInfo = ({
                         {
                             text: <>
                                 {
-                                    (pts_for > 0 && pts_against > 0)
-                                        ? pts_for > pts_against
-                                            ? 'W'
-                                            : pts_for < pts_against
-                                                ? 'L'
-                                                : 'T'
-                                        : '-'
+                                    pts_for > pts_against
+                                        ? 'W'
+                                        : pts_for < pts_against
+                                            ? 'L'
+                                            : pts_for === pts_against
+                                                ? 'T'
+                                                : '-'
+
                                 }
                                 {
-                                    !!median_win
-                                    && <i className="fa-solid fa-trophy"></i>
+                                    median_win === 1
+                                        ? <i className="fa-solid fa-trophy"></i>
+                                        : median_loss === 1
+                                            ? <i className="fa-solid fa-poop"></i>
+                                            : null
                                 }
                             </>,
                             colSpan: 1,

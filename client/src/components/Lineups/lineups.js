@@ -7,6 +7,7 @@ import '../../css/css/lineups.css';
 import Lineup from './lineup';
 import { includeLockedIcon, includeTaxiIcon } from '../../functions/filterIcons';
 import LineupPrev from './lineupPrev';
+import { loadingIcon } from '../../functions/misc';
 
 const Lineups = () => {
     const dispatch = useDispatch();
@@ -28,14 +29,15 @@ const Lineups = () => {
         itemActive,
         page,
         searched,
-        recordType
+        recordType,
+        isLoadingProjectionDict
     } = useSelector(state => state.lineups);
 
     console.log({ lineupChecks })
 
     const hash = `${includeTaxi}-${includeLocked}`
 
-    const columnOptions = week < state.display_week
+    const columnOptions = week < state.week
         ? [
             'For',
             'Against',
@@ -74,7 +76,7 @@ const Lineups = () => {
                 rowSpan: 2
             },
             {
-                text: week < state.display_week ? 'Results' : '#Slots',
+                text: week < state.week ? 'Results' : '#Slots',
                 colSpan: 8,
                 className: 'half'
             }
@@ -83,16 +85,16 @@ const Lineups = () => {
         [
             {
                 text: <label className="select">
-                    <p>{week < state.display_week ? column1_prev : column1}</p>
+                    <p>{week < state.week ? column1_prev : column1}</p>
                     <select
-                        value={week < state.display_week ? column1_prev : column1}
+                        value={week < state.week ? column1_prev : column1}
                         className="hidden_behind click"
-                        onChange={(e) => dispatch(setState({ [week < state.display_week ? 'column1_prev' : 'column1']: e.target.value }, 'LINEUPS'))}
+                        onChange={(e) => dispatch(setState({ [week < state.week ? 'column1_prev' : 'column1']: e.target.value }, 'LINEUPS'))}
                     >
                         {
                             columnOptions
                                 .filter(column => (
-                                    week < state.display_week
+                                    week < state.week
                                         ? ![column2_prev, column3_prev, column4_prev].includes(column)
                                         : ![column2, column3, column4].includes(column)))
                                 .map(column => {
@@ -106,16 +108,16 @@ const Lineups = () => {
             },
             {
                 text: <label className="select">
-                    <p>{week < state.display_week ? column2_prev : column2}</p>
+                    <p>{week < state.week ? column2_prev : column2}</p>
                     <select
-                        value={week < state.display_week ? column2_prev : column2}
+                        value={week < state.week ? column2_prev : column2}
                         className="hidden_behind click"
-                        onChange={(e) => dispatch(setState({ [week < state.display_week ? 'column2_prev' : 'column2']: e.target.value }, 'LINEUPS'))}
+                        onChange={(e) => dispatch(setState({ [week < state.week ? 'column2_prev' : 'column2']: e.target.value }, 'LINEUPS'))}
                     >
                         {
                             columnOptions
                                 .filter(column => (
-                                    week < state.display_week
+                                    week < state.week
                                         ? ![column1_prev, column3_prev, column4_prev].includes(column)
                                         : ![column1, column3, column4].includes(column)))
                                 .map(column => {
@@ -128,16 +130,16 @@ const Lineups = () => {
             },
             {
                 text: <label className="select">
-                    <p>{week < state.display_week ? column3_prev : column3}</p>
+                    <p>{week < state.week ? column3_prev : column3}</p>
                     <select
-                        value={week < state.display_week ? column3_prev : column3}
+                        value={week < state.week ? column3_prev : column3}
                         className="hidden_behind click"
-                        onChange={(e) => dispatch(setState({ [week < state.display_week ? 'column3_prev' : 'column3']: e.target.value }, 'LINEUPS'))}
+                        onChange={(e) => dispatch(setState({ [week < state.week ? 'column3_prev' : 'column3']: e.target.value }, 'LINEUPS'))}
                     >
                         {
                             columnOptions
                                 .filter(column => (
-                                    week < state.display_week
+                                    week < state.week
                                         ? ![column1_prev, column2_prev, column4_prev].includes(column)
                                         : ![column1, column2, column4].includes(column)))
                                 .map(column => {
@@ -150,15 +152,15 @@ const Lineups = () => {
             },
             {
                 text: <label className="select">
-                    <p>{week < state.display_week ? column4_prev : column4}</p><select
-                        value={week < state.display_week ? column4_prev : column4}
+                    <p>{week < state.week ? column4_prev : column4}</p><select
+                        value={week < state.week ? column4_prev : column4}
                         className="hidden_behind click"
-                        onChange={(e) => dispatch(setState({ [week < state.display_week ? 'column4_prev' : 'column4']: e.target.value }, 'LINEUPS'))}
+                        onChange={(e) => dispatch(setState({ [week < state.week ? 'column4_prev' : 'column4']: e.target.value }, 'LINEUPS'))}
                     >
                         {
                             columnOptions
                                 .filter(column => (
-                                    week < state.display_week
+                                    week < state.week
                                         ? ![column1_prev, column2_prev, column3_prev].includes(column)
                                         : ![column1, column2, column3].includes(column)))
                                 .map(column => {
@@ -406,7 +408,7 @@ const Lineups = () => {
     const lineups_body = filterLeagues(leagues, type1, type2)
         ?.filter(l => !searched.id || searched.id === l.league_id)
         ?.map(league => {
-            if (week >= state.display_week) {
+            if (week >= state.week) {
                 const lineup_check_user = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.lineup_check;
 
                 const matchup_user = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.matchup;
@@ -491,18 +493,20 @@ const Lineups = () => {
                             matchup={matchup_user}
                             optimal_lineup={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.optimal_lineup}
                             players_projections={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.players_projections}
-                            players_points={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.players_points}
+                            players_points={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.matchup?.players_points}
                             lineup_check_opp={lineup_check_opp}
                             matchup_opp={matchup_opp}
                             optimal_lineup_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.optimal_lineup}
                             players_projections_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_projections}
-                            players_points_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_points}
+                            players_points_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.matchup?.players_points}
                         />
                     )
                 }
             } else {
-                const matchup_user = lineupChecks[week]?.[league.league_id]?.lc_user?.matchup;
-                const matchup_opp = lineupChecks[week]?.[league.league_id]?.lc_opp?.matchup;
+                const lc_league = week < state.week ? lineupChecks[week]?.[league.league_id] : lineupChecks[week]?.[hash]?.[league.league_id]
+                const matchup_user = lc_league?.lc_user?.matchup;
+                const matchup_opp = lc_league?.lc_opp?.matchup;
+
 
                 return {
                     id: league.league_id,
@@ -527,28 +531,34 @@ const Lineups = () => {
                         },
                         {
                             text: <>
+
                                 {
-                                    (matchup_user?.points > 0 && matchup_opp?.points > 0)
-                                        ? matchup_user?.points > matchup_opp?.points
-                                            ? 'W'
-                                            : matchup_user?.points < matchup_opp?.points
-                                                ? 'L'
-                                                : 'T'
-                                        : '-'
+
+                                    lc_league?.win
+                                        ? 'W'
+                                        : lc_league?.loss
+                                            ? 'L'
+                                            : lc_league?.tie
+                                                ? 'T'
+                                                : '-'
+
                                 }
                                 {
-                                    lineupChecks[week]?.[league.league_id]?.median_win
-                                    && <i className="fa-solid fa-trophy"></i>
+                                    lc_league?.median_win === 1
+                                        ? <i className="fa-solid fa-trophy"></i>
+                                        : lc_league?.median_loss === 1
+                                            ? <i className="fa-solid fa-poop"></i>
+                                            : null
                                 }
                             </>,
                             colSpan: 1,
-                            className: (matchup_user?.points > 0 && matchup_opp?.points > 0)
-                                ? matchup_user?.points > matchup_opp?.points
-                                    ? 'greenb'
-                                    : matchup_user?.points < matchup_opp?.points
-                                        ? 'redb'
+                            className: lc_league?.win
+                                ? 'greenb'
+                                : lc_league?.loss
+                                    ? 'redb'
+                                    : lc_league?.tie
+                                        ? '-'
                                         : '-'
-                                : '-',
                         },
                         {
                             ...getColumnValuePrev(column1_prev, league.league_id, matchup_user, matchup_opp)
@@ -569,9 +579,11 @@ const Lineups = () => {
                             matchup_user={matchup_user}
                             matchup_opp={matchup_opp}
                             players_projections={{
-                                ...lineupChecks[week]?.[league.league_id]?.lc_user?.players_projections || {},
-                                ...lineupChecks[week]?.[league.league_id]?.lc_opp?.players_projections || {},
+                                ...lc_league?.lc_user?.players_projections || {},
+                                ...lc_league?.lc_opp?.players_projections || {},
                             }}
+                            players_points={matchup_user?.players_points}
+                            players_points_opp={matchup_opp?.players_points}
                         />
                     )
                 }
@@ -581,107 +593,130 @@ const Lineups = () => {
 
 
     useEffect(() => {
-        if (week < state.display_week) {
+        if (week < state.week) {
             dispatch(setState({ recordType: 'actual' }, 'LINEUPS'));
         }
-    }, [week, dispatch])
+    }, [week, state.week, dispatch])
 
-    const projectedRecord = filterLeagues((leagues || []), type1, type2)
-        .reduce((acc, cur) => {
-            const proj_score = parseFloat(lineupChecks[week]?.[hash]?.[cur.league_id]?.lc_user?.[`proj_score_${recordType}`]);
-            const proj_score_opp = parseFloat(lineupChecks[week]?.[hash]?.[cur.league_id]?.lc_opp?.[`proj_score_${recordType}`]);
-
-
-            let wins = proj_score > proj_score_opp ? 1 : 0;
-            let losses = proj_score < proj_score_opp ? 1 : 0
-            let ties = (proj_score + proj_score_opp > 0 && proj_score < proj_score_opp) ? 1 : 0
+    const projectedRecord = week >= state.week
+        ? filterLeagues((leagues || []), type1, type2)
+            .reduce((acc, cur) => {
+                const lc_league = lineupChecks[week]?.[hash]?.[cur.league_id]
+                const proj_score = parseFloat(lc_league?.lc_user?.[`proj_score_${recordType}`]);
+                const proj_score_opp = parseFloat(lc_league?.lc_opp?.[`proj_score_${recordType}`]);
 
 
-            if (cur.settings.league_average_match === 1) {
+                let wins = (lc_league?.win || 0) + (lc_league?.median_win || 0)
+                let losses = (lc_league?.loss || 0) + (lc_league?.median_loss || 0)
+                let ties = lc_league?.tie || 0
 
-                wins += lineupChecks[week]?.[hash]?.[cur.league_id]?.median_win;
 
-                losses += lineupChecks[week]?.[hash]?.[cur.league_id]?.median_loss;
-            }
 
-            return {
-                wins: acc.wins + wins,
-                losses: acc.losses + losses,
-                ties: acc.ties + ties,
-                fpts: acc.fpts + (proj_score || 0),
-                fpts_against: acc.fpts_against + (proj_score_opp || 0),
-            }
-        }, {
-            wins: 0,
-            losses: 0,
-            ties: 0,
-            fpts: 0,
-            fpts_against: 0
-        })
-    console.log({ projectedRecord })
-    return <>
-        <h1>
-            Week <select
-                value={week}
-                onChange={(e) => dispatch(setState({ week: e.target.value }, 'LINEUPS'))}
-            >
-                {
-                    Array.from(Array(18).keys()).map(key =>
-                        <option key={key + 1}>{key + 1}</option>
-                    )
+                return {
+                    wins: acc.wins + wins,
+                    losses: acc.losses + losses,
+                    ties: acc.ties + ties,
+                    fpts: acc.fpts + (proj_score || 0),
+                    fpts_against: acc.fpts_against + (proj_score_opp || 0),
                 }
-            </select>
-        </h1>
-        <h2>
-            <table className="summary">
-                <tbody>
-                    <tr>
-                        <th>Type</th>
-                        <td>
-                            <select
-                                className={'record_type'}
-                                value={recordType}
-                                onChange={(e) => dispatch(setState({ recordType: e.target.value }, 'LINEUPS'))}
-                                disabled={week < state.display_week}
-                            >
-                                <option value={'actual'}>Actual Proj</option>
-                                <option value={'optimal'}>Optimal Proj</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Record</th>
-                        <td>{projectedRecord?.wins}-{projectedRecord?.losses}</td>
-                    </tr>
-                    <tr>
-                        <th>Points For</th>
-                        <td>{projectedRecord?.fpts?.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                    </tr>
-                    <tr>
-                        <th>Points Against</th>
-                        <td>{projectedRecord?.fpts_against?.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
-                    </tr>
-                </tbody>
-            </table>
+            }, {
+                wins: 0,
+                losses: 0,
+                ties: 0,
+                fpts: 0,
+                fpts_against: 0
+            })
+        : filterLeagues((leagues || []), type1, type2)
+            .reduce((acc, cur) => {
+                const score = lineupChecks[week]?.[cur.league_id]?.lc_user?.matchup?.points || 0;
+                const score_opp = lineupChecks[week]?.[cur.league_id]?.lc_opp?.matchup?.points || 0;
+
+                let wins = (lineupChecks[week]?.[cur.league_id]?.win || 0) + (lineupChecks[week]?.[cur.league_id]?.median_win || 0);
+                let losses = (lineupChecks[week]?.[cur.league_id]?.loss || 0) + (lineupChecks[week]?.[cur.league_id]?.median_loss || 0);
+                let ties = lineupChecks[week]?.[cur.league_id]?.tie || 0
 
 
-        </h2>
-        <TableMain
-            id={'Lineups'}
-            type={'primary'}
-            headers={lineups_headers}
-            body={lineups_body}
-            page={page}
-            setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
-            itemActive={itemActive}
-            setItemActive={(value) => dispatch(setState({ itemActive: value }, 'LINEUPS'))}
-            search={true}
-            searched={searched}
-            setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
-            options2={[includeLockedIcon(includeLocked, (value) => dispatch(setState({ includeLocked: value }, 'LINEUPS')))]}
-            options1={[includeTaxiIcon(includeTaxi, (value) => dispatch(setState({ includeTaxi: value }, 'LINEUPS')))]}
-        />
-    </>
+                return {
+                    wins: acc.wins + wins,
+                    losses: acc.losses + losses,
+                    ties: acc.ties + ties,
+                    fpts: acc.fpts + score,
+                    fpts_against: acc.fpts_against + score_opp,
+                }
+            }, {
+                wins: 0,
+                losses: 0,
+                ties: 0,
+                fpts: 0,
+                fpts_against: 0
+            })
+
+    return (week < state.week && !lineupChecks?.[week])
+        || (week >= state.week && !lineupChecks?.[week]?.[hash])
+        ? loadingIcon
+        : <>
+            <h1>
+                Week <select
+                    value={week}
+                    onChange={(e) => dispatch(setState({ week: e.target.value }, 'LINEUPS'))}
+                >
+                    {
+                        Array.from(Array(18).keys()).map(key =>
+                            <option key={key + 1}>{key + 1}</option>
+                        )
+                    }
+                </select>
+            </h1>
+            <h2>
+                <table className="summary">
+                    <tbody>
+                        <tr>
+                            <th>Type</th>
+                            <td>
+                                <select
+                                    className={'record_type'}
+                                    value={recordType}
+                                    onChange={(e) => dispatch(setState({ recordType: e.target.value }, 'LINEUPS'))}
+                                    disabled={week < state.week}
+                                >
+                                    <option value={'actual'}>Actual Proj</option>
+                                    <option value={'optimal'}>Optimal Proj</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Record</th>
+                            <td>{projectedRecord?.wins}-{projectedRecord?.losses}{projectedRecord?.ties > 0 && `-${projectedRecord.ties}`}</td>
+                        </tr>
+                        <tr>
+                            <th>Points For</th>
+                            <td>{projectedRecord?.fpts?.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                        </tr>
+                        <tr>
+                            <th>Points Against</th>
+                            <td>{projectedRecord?.fpts_against?.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+            </h2>
+            <TableMain
+                id={'Lineups'}
+                type={'primary'}
+                headers={lineups_headers}
+                body={lineups_body}
+                page={page}
+                setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
+                itemActive={itemActive}
+                setItemActive={(value) => dispatch(setState({ itemActive: value }, 'LINEUPS'))}
+                search={true}
+                searched={searched}
+                setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
+                options2={[includeLockedIcon(includeLocked, (value) => dispatch(setState({ includeLocked: value }, 'LINEUPS')))]}
+                options1={[includeTaxiIcon(includeTaxi, (value) => dispatch(setState({ includeTaxi: value }, 'LINEUPS')))]}
+            />
+        </>
 }
 
 export default Lineups;

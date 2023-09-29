@@ -45,10 +45,7 @@ const getAllPlayers = async () => {
 const getState = async (app) => {
     const state = await axios.get('https://api.sleeper.app/v1/state/nfl')
 
-    app.set('state', {
-        ...state.data,
-        display_week: state.data.season_type === "pre" ? 1 : state.data.season_type === "regular" ? Math.max(state.data.display_week, 1) : 19
-    }, 0)
+    app.set('state', state.data, 0)
 }
 
 const getSchedule = async () => {

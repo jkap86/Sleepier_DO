@@ -25,7 +25,7 @@ module.exports = async (app) => {
         setInterval(async () => {
             console.log('Daily update starting...')
 
-            if (process.env.DATABASE_URL) {
+            if (!process.env.DATABASE_URL) {
                 await getAllPlayers();
                 await getSchedule();
             }

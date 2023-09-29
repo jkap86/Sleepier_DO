@@ -1,7 +1,9 @@
 
 self.onmessage = (e) => {
 
-    const { weeks, state, leagues, allplayers, schedule, projections, includeLocked, includeTaxi, rankings, user_id, recordType } = e.data;
+    const { weeks_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids } = e.data;
+
+    console.log({ weeks_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType })
 
     const getPlayerScore = (stats_array, scoring_settings, total = false) => {
 
@@ -40,6 +42,8 @@ self.onmessage = (e) => {
             LVR: 'LV',
             NOS: 'NO'
         }
+
+
         return team_abbrev[team] || team
     }
 
@@ -76,7 +80,7 @@ self.onmessage = (e) => {
             ?.filter(player_id => includeTaxi ? true : !(roster?.taxi || []).includes(player_id))
             ?.map(player_id => {
                 const playing = schedule
-                    ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === stateAllPlayers[player_id]?.team) || !stateAllPlayers[player_id]?.team)
+                    ?.find(m => m.team.find(t => matchTeam(t.id) === stateAllPlayers[player_id]?.team) || !stateAllPlayers[player_id]?.team)
                 players.push({
                     id: player_id,
                     rank: weeklyRankings
@@ -97,10 +101,11 @@ self.onmessage = (e) => {
             let optimal_lineup = []
             let player_ranks_filtered = players
             starting_slots.map((slot, index) => {
-                const kickoff = new Date(parseInt(schedule
-                    ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === (stateAllPlayers[matchup.starters?.[index]]?.team)))
+                let kickoff = new Date(parseInt(schedule
+                    ?.find(m => m.team.find(t => matchTeam(t.id) === (stateAllPlayers[matchup.starters?.[index]]?.team)))
                     ?.kickoff * 1000)).getTime()
 
+                kickoff = new Date(new Date(kickoff).toLocaleDateString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit' })).getTime()
                 const slot_options = player_ranks_filtered
                     .filter(x =>
                         position_map[slot].includes(stateAllPlayers[x.id]?.position)
@@ -109,7 +114,14 @@ self.onmessage = (e) => {
                         (a, b) => weeklyRankings ? a.rank - b.rank : b.rank - a.rank
                     )
 
-                const optimal_player = includeLocked && kickoff > new Date().getTime() ? matchup.starters[index] : slot_options[0]?.id
+                let optimal_player;
+
+                if (includeLocked && kickoff < new Date().getTime()) {
+
+                    optimal_player = matchup.starters?.[index] || slot_options[0]?.id
+                } else {
+                    optimal_player = slot_options[0]?.id
+                }
 
                 player_ranks_filtered = player_ranks_filtered.filter(x => x.id !== optimal_player)
                 optimal_lineup.push({
@@ -129,7 +141,7 @@ self.onmessage = (e) => {
                 const cur_id = (matchup?.starters || [])[index]
                 const isInOptimal = optimal_lineup.find(x => x.player === cur_id)
                 const kickoff = new Date(parseInt(schedule
-                    ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === stateAllPlayers[cur_id]?.team))
+                    ?.find(m => m.team.find(t => matchTeam(t.id) === stateAllPlayers[cur_id]?.team))
                     ?.kickoff * 1000))
                 const gametime = new Date(kickoff)
                 const day = gametime.getDay() <= 2 ? gametime.getDay() + 7 : gametime.getDay()
@@ -143,16 +155,14 @@ self.onmessage = (e) => {
                     || []
                 const earlyInFlex = matchup.starters?.find((x, starter_index) => {
                     const alt_kickoff = new Date(parseInt(schedule
-                        ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === stateAllPlayers[x]?.team))
+                        ?.find(m => m.team.find(t => matchTeam(t.id) === stateAllPlayers[x]?.team))
                         ?.kickoff * 1000))
                     const alt_gametime = new Date(alt_kickoff)
                     const alt_day = alt_gametime.getDay() <= 2 ? alt_gametime.getDay() + 7 : alt_gametime.getDay()
                     const alt_hour = alt_gametime.getHours()
                     const alt_timeslot = parseFloat(alt_day + '.' + alt_hour)
 
-                    return timeslot < 7
-                        && alt_timeslot > timeslot
-
+                    return alt_kickoff > (kickoff + 30 * 60 * 1000)
                         && position_map[slot].includes(stateAllPlayers[x]?.position)
                         && position_map[starting_slots[starter_index]].includes(stateAllPlayers[cur_id]?.position)
                         && position_map[league.roster_positions[starter_index]].length < position_map[slot].length
@@ -162,22 +172,17 @@ self.onmessage = (e) => {
 
                 const lateNotInFlex = matchup.starters?.find((x, starter_index) => {
                     const alt_kickoff = new Date(parseInt(schedule
-                        ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === stateAllPlayers[x]?.team))
+                        ?.find(m => m.team.find(t => matchTeam(t.id) === stateAllPlayers[x]?.team))
                         ?.kickoff * 1000))
                     const alt_gametime = new Date(alt_kickoff)
                     const alt_day = alt_gametime.getDay() <= 2 ? alt_gametime.getDay() + 7 : alt_gametime.getDay()
                     const alt_hour = alt_gametime.getHours()
                     const alt_timeslot = parseFloat(alt_day + '.' + alt_hour)
 
-                    return (
-                        timeslot > 7.17
-                        && alt_timeslot < timeslot
-
+                    return (alt_kickoff + 30 * 60 * 1000) < kickoff
                         && position_map[slot].includes(stateAllPlayers[x]?.position)
                         && position_map[starting_slots[starter_index]].includes(stateAllPlayers[cur_id]?.position)
                         && position_map[league.roster_positions[starter_index]].length > position_map[slot].length
-
-                    )
                 })
 
                 return lineup_check.push({
@@ -190,7 +195,7 @@ self.onmessage = (e) => {
                     lateNotInFlex: lateNotInFlex,
                     nonQBinSF: position_map[slot].includes('QB') && stateAllPlayers[(matchup?.starters || [])[index]]?.position !== 'QB',
                     slot_options: slot_options,
-                    player: stateAllPlayers[matchup?.starters[index]]?.full_name,
+                    player: matchup?.starters && stateAllPlayers[matchup?.starters[index]]?.full_name || "0",
                     timeslot: timeslot
 
                 })
@@ -205,17 +210,16 @@ self.onmessage = (e) => {
         const optimalPlayers = optimal_lineup?.map(x => x.player);
 
         return {
-            players_points: matchup.players_points,
             players_projections: players_projections,
             starting_slots: starting_slots,
             optimal_lineup: optimal_lineup,
             lineup_check: lineup_check,
             matchup: matchup,
             proj_score_actual: Object.keys(players_projections || {})
-                .filter(player_id => matchup.starters.includes(player_id))
+                .filter(player_id => matchup.starters?.includes(player_id))
                 .reduce((acc, cur) => acc + (players_projections || {})[cur], 0),
             proj_score_optimal: Object.keys(players_projections || {})
-                .filter(player_id => optimalPlayers.includes(player_id))
+                .filter(player_id => optimalPlayers?.includes(player_id))
                 .reduce((acc, cur) => acc + (players_projections || {})[cur], 0)
 
         }
@@ -225,7 +229,7 @@ self.onmessage = (e) => {
         let lineupChecks_week = {};
 
         leagues
-            .filter(league => league[`matchups_${week}`])
+            .filter(league => (!league_ids || league_ids?.includes(league.league_id)) && league[`matchups_${week}`])
             .map(league => {
                 const matchup_user = league[`matchups_${week}`].find(m => m.roster_id === league.userRoster.roster_id);
                 const matchup_opp = league[`matchups_${week}`].find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== league.userRoster.roster_id)
@@ -233,21 +237,60 @@ self.onmessage = (e) => {
                 const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
                 const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
 
-                const pts_rank = league[`matchups_${week}`]
-                    ?.sort((a, b) => b.points - a.points)
-                    ?.findIndex(matchup => {
-                        return matchup.matchup_id === league.userRoster.roster_id
-                    })
+                let win, loss, tie;
 
-                const median_win = league.settings.league_average_match === 1
-                    && pts_rank + 1 <= league.rosters.length
+                if (week >= league.settings.start_week && matchup_user && matchup_opp) {
+                    if (lc_user?.matchup?.points > lc_opp?.matchup?.points) {
+                        win = 1;
+                        loss = 0;
+                        tie = 0;
+                    } else if (lc_user?.matchup?.points < lc_opp?.matchup?.points) {
+                        win = 0;
+                        loss = 1;
+                        tie = 0;
+                    } else {
+                        win = 0;
+                        loss = 0;
+                        tie = 1;
+                    }
+                } else {
+                    win = 0;
+                    loss = 0;
+                    tie = 0;
+                }
+
+
+                let median_win = 0;
+                let median_loss = 0;
+
+                if (
+                    league.settings.league_average_match === 1
+                    && week >= league.settings.start_week
+                ) {
+                    const pts_rank = league[`matchups_${week}`]
+                        ?.sort((a, b) => b.points - a.points)
+                        ?.findIndex(m => {
+                            return m.roster_id === league.userRoster.roster_id
+                        })
+
+                    if (pts_rank + 1 <= (league.rosters.length / 2)) {
+                        median_win++
+                    } else {
+                        median_loss++
+                    }
+                }
+
 
                 return lineupChecks_week[league.league_id] = {
                     name: league.name,
                     avatar: league.avatar,
                     lc_user: lc_user,
                     lc_opp: lc_opp,
-                    median_win: median_win
+                    win: win,
+                    loss: loss,
+                    tie: tie,
+                    median_win: median_win,
+                    median_loss: median_loss
                 }
             })
 
@@ -273,23 +316,47 @@ self.onmessage = (e) => {
                 const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked, true)
 
                 const standings = league[`matchups_${week}`]
-                    ?.map(matchup => {
-                        return matchup && getLineupCheck(matchup, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
+                    ?.map(m => {
+                        return m && getLineupCheck(m, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
                     })
                     ?.sort((a, b) => b[`proj_score_${recordType}`] - a[`proj_score_${recordType}`])
 
                 const pts_rank = standings
                     ?.findIndex(lc => {
-                        return lc.matchup.matchup_id === roster_id
+                        return lc.matchup.roster_id === roster_id
                     })
 
+                let win, loss, tie;
+
+                if (week >= league.settings.start_week && matchup_user && matchup_opp) {
+                    if (lc_user[`proj_score_${recordType}`] > lc_opp[`proj_score_${recordType}`]) {
+                        win = 1;
+                        loss = 0;
+                        tie = 0;
+                    } else if (lc_user[`proj_score_${recordType}`] < lc_opp[`proj_score_${recordType}`]) {
+                        win = 0;
+                        loss = 1;
+                        tie = 0;
+                    } else {
+                        win = 0;
+                        loss = 0;
+                        tie = 1;
+                    }
+                } else {
+                    win = 0;
+                    loss = 0;
+                    tie = 0;
+                }
+
+
+
                 const median_win = (league.settings.league_average_match === 1
-                    && pts_rank + 1 <= league.rosters.length)
+                    && pts_rank + 1 <= (league.rosters.length / 2))
                     ? 1
                     : 0
 
                 const median_loss = (league.settings.league_average_match === 1
-                    && pts_rank + 1 >= league.rosters.length)
+                    && pts_rank + 1 >= (league.rosters.length / 2))
                     ? 1
                     : 0
 
@@ -298,18 +365,36 @@ self.onmessage = (e) => {
                     avatar: league.avatar,
                     lc_user: lc_user,
                     lc_opp: lc_opp,
+                    win: win,
+                    loss: loss,
+                    tie: tie,
                     median_win: median_win,
                     median_loss: median_loss,
                     standings: Object.fromEntries(
                         standings.map(s => {
                             const opp = standings.find(s2 => s2.matchup.matchup_id === s.matchup.matchup_id && s2.matchup.roster_id !== s.matchup.roster_id)
+
+                            const pts_rank_lm = standings
+                                ?.findIndex(lc => {
+                                    return lc.matchup.roster_id === s.matchup.roster_id
+                                })
+
+                            const median_win_lm = (league.settings.league_average_match === 1
+                                && pts_rank_lm + 1 <= (league.rosters.length / 2))
+                                ? 1
+                                : 0
+
+                            const median_loss_lm = (league.settings.league_average_match === 1
+                                && pts_rank_lm + 1 >= (league.rosters.length / 2))
+                                ? 1
+                                : 0
                             return [
                                 s.matchup.roster_id,
                                 {
                                     wins: (s.proj_score_optimal > opp.proj_score_optimal ? 1 : 0)
-                                        + median_win,
+                                        + median_win_lm,
                                     losses: (s.proj_score_optimal < opp.proj_score_optimal ? 1 : 0)
-                                        + median_loss,
+                                        + median_loss_lm,
                                     ties: (s.proj_score_optimal + opp.proj_score_optimal > 0 && s.proj_score_optimal === opp.proj_score_optimal)
                                         ? 1
                                         : 0,
@@ -325,14 +410,12 @@ self.onmessage = (e) => {
         return lineupChecks_week
     }
 
-    const result = {};
-
-    weeks
+    weeks_to_fetch
         .forEach(week => {
             console.log(`getting projections for week ${week}`)
             let projectedRecordWeek;
 
-            if (week < state.display_week) {
+            if (week < state.week) {
                 projectedRecordWeek = getLineupChecksPrevWeek(week);
 
             } else {
