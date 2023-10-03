@@ -1,17 +1,15 @@
-import TableMain from '../Home/tableMain';
-import { useDispatch, useSelector } from 'react-redux';
-import { setState } from '../../redux/actions/state';
-import { useEffect } from 'react';
-import { filterLeagues } from '../../functions/filterLeagues';
-import '../../css/css/lineups.css';
-import Lineup from './lineup';
-import { includeLockedIcon, includeTaxiIcon } from '../../functions/filterIcons';
-import LineupPrev from './lineupPrev';
-import { loadingIcon } from '../../functions/misc';
+import { useSelector, useDispatch } from "react-redux";
+import { loadingIcon } from "../../functions/misc";
+import TableMain from "../Home/tableMain";
+import { setState } from "../../redux/actions/state";
+import { filterLeagues } from "../../functions/filterLeagues";
+import { includeTaxiIcon, includeLockedIcon } from "../../functions/filterIcons";
+import Lineups2Main from "./lineups2Main";
 
-const Lineups = () => {
+
+const LineupsView = () => {
     const dispatch = useDispatch();
-    const { projections, type1, type2, state } = useSelector(state => state.main);
+    const { state, projections, type1, type2 } = useSelector(state => state.main);
     const { leagues } = useSelector(state => state.user);
     const {
         includeTaxi,
@@ -32,8 +30,6 @@ const Lineups = () => {
         recordType,
         isLoadingProjectionDict
     } = useSelector(state => state.lineups);
-
-    console.log({ lineupChecks })
 
     const hash = `${includeTaxi}-${includeLocked}`
 
@@ -405,6 +401,7 @@ const Lineups = () => {
         }
     }
 
+
     const lineups_body = filterLeagues(leagues, type1, type2)
         ?.filter(l => !searched.id || searched.id === l.league_id)
         ?.map(league => {
@@ -412,6 +409,7 @@ const Lineups = () => {
                 const lineup_check_user = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.lineup_check;
 
                 const matchup_user = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.matchup;
+                const optimal_lineup = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.optimal_lineup
 
                 const proj_score_user_optimal = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_optimal;
                 const proj_score_user_actual = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_actual;
@@ -419,9 +417,15 @@ const Lineups = () => {
                 const lineup_check_opp = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.lineup_check;
 
                 const matchup_opp = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.matchup;
+                const optimal_lineup_opp = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.optimal_lineup
 
                 const proj_score_opp_optimal = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_optimal;
                 const proj_score_opp_actual = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_actual;
+
+                const players_projections = {
+                    ...lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.players_projections,
+                    ...lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_projections
+                }
 
                 return {
                     id: league.league_id,
@@ -482,31 +486,30 @@ const Lineups = () => {
                             ...getColumnValue(column4, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual)
                         }
                     ],
-                    secondary_table: (
-                        <Lineup
-                            league={league}
-                            proj_score_user_actual={proj_score_user_actual}
-                            proj_score_user_optimal={proj_score_user_optimal}
-                            proj_score_opp_actual={proj_score_opp_actual}
-                            proj_score_opp_optimal={proj_score_opp_optimal}
-                            lineup_check={lineup_check_user}
-                            matchup={matchup_user}
-                            optimal_lineup={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.optimal_lineup}
-                            players_projections={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.players_projections}
-                            players_points={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.matchup?.players_points}
-                            lineup_check_opp={lineup_check_opp}
-                            matchup_opp={matchup_opp}
-                            optimal_lineup_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.optimal_lineup}
-                            players_projections_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_projections}
-                            players_points_opp={lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.matchup?.players_points}
-                        />
-                    )
+                    secondary_table: <Lineups2Main
+                        league={league}
+                        matchup_user={matchup_user}
+                        matchup_opp={matchup_opp}
+                        lineup_check={lineup_check_user}
+                        lineup_check_opp={lineup_check_opp}
+                        optimal_lineup={optimal_lineup}
+                        optimal_lineup_opp={optimal_lineup_opp}
+                        players_projections={players_projections}
+                        proj_score_user_actual={proj_score_user_actual}
+                        proj_score_user_optimal={proj_score_user_optimal}
+                        proj_score_opp_actual={proj_score_opp_actual}
+                        proj_score_opp_optimal={proj_score_opp_optimal}
+                    />
                 }
             } else {
                 const lc_league = week < state.week ? lineupChecks[week]?.[league.league_id] : lineupChecks[week]?.[hash]?.[league.league_id]
                 const matchup_user = lc_league?.lc_user?.matchup;
                 const matchup_opp = lc_league?.lc_opp?.matchup;
 
+                const players_projections = {
+                    ...lineupChecks[week]?.[league.league_id]?.lc_user?.players_projections,
+                    ...lineupChecks[week]?.[league.league_id]?.lc_opp?.players_projections
+                }
 
                 return {
                     id: league.league_id,
@@ -573,30 +576,15 @@ const Lineups = () => {
                             ...getColumnValuePrev(column4_prev, league.league_id, matchup_user, matchup_opp)
                         }
                     ],
-                    secondary_table: (
-                        <LineupPrev
-                            league={league}
-                            matchup_user={matchup_user}
-                            matchup_opp={matchup_opp}
-                            players_projections={{
-                                ...lc_league?.lc_user?.players_projections || {},
-                                ...lc_league?.lc_opp?.players_projections || {},
-                            }}
-                            players_points={matchup_user?.players_points}
-                            players_points_opp={matchup_opp?.players_points}
-                        />
-                    )
+                    secondary_table: <Lineups2Main
+                        league={league}
+                        matchup_user={matchup_user}
+                        matchup_opp={matchup_opp}
+                        players_projections={players_projections}
+                    />
                 }
             }
         })
-
-
-
-    useEffect(() => {
-        if (week < state.week) {
-            dispatch(setState({ recordType: 'actual' }, 'LINEUPS'));
-        }
-    }, [week, state.week, dispatch])
 
     const projectedRecord = week >= state.week
         ? filterLeagues((leagues || []), type1, type2)
@@ -650,6 +638,7 @@ const Lineups = () => {
                 fpts: 0,
                 fpts_against: 0
             })
+
 
     return (week < state.week && !lineupChecks?.[week])
         || (week >= state.week && !lineupChecks?.[week]?.[hash])
@@ -719,4 +708,4 @@ const Lineups = () => {
         </>
 }
 
-export default Lineups;
+export default LineupsView;

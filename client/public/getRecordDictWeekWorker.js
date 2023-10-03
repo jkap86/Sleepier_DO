@@ -81,8 +81,14 @@ self.onmessage = (e) => {
             ?.map(player_id => {
                 const playing = schedule
                     ?.find(m => m.team.find(t => matchTeam(t.id) === stateAllPlayers[player_id]?.team) || !stateAllPlayers[player_id]?.team)
+
+                let kickoff = new Date(parseInt(schedule
+                    ?.find(m => m.team.find(t => matchTeam(t.id) === (stateAllPlayers[player_id]?.team)))
+                    ?.kickoff * 1000)).getTime()
+
                 players.push({
                     id: player_id,
+                    kickoff: kickoff,
                     rank: weeklyRankings
                         ? !playing
                             ? 1001
@@ -101,14 +107,15 @@ self.onmessage = (e) => {
             let optimal_lineup = []
             let player_ranks_filtered = players
             starting_slots.map((slot, index) => {
-                let kickoff = new Date(parseInt(schedule
-                    ?.find(m => m.team.find(t => matchTeam(t.id) === (stateAllPlayers[matchup.starters?.[index]]?.team)))
-                    ?.kickoff * 1000)).getTime()
 
-                kickoff = new Date(new Date(kickoff).toLocaleDateString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit' })).getTime()
+                const kickoff = players.find(p => p.id === matchup.starters?.[index])?.kickoff
+
                 const slot_options = player_ranks_filtered
                     .filter(x =>
                         position_map[slot].includes(stateAllPlayers[x.id]?.position)
+                        && (
+                            !includeLocked || x.kickoff > new Date().getTime()
+                        )
                     )
                     .sort(
                         (a, b) => weeklyRankings ? a.rank - b.rank : b.rank - a.rank
@@ -124,6 +131,7 @@ self.onmessage = (e) => {
                 }
 
                 player_ranks_filtered = player_ranks_filtered.filter(x => x.id !== optimal_player)
+
                 optimal_lineup.push({
                     slot: position_abbrev[slot],
                     player: optimal_player
@@ -301,7 +309,7 @@ self.onmessage = (e) => {
         let lineupChecks_week = {};
 
         leagues
-            .filter(league => league[`matchups_${week}`])
+            .filter(league => (!league_ids || league_ids?.includes(league.league_id)) && league[`matchups_${week}`])
             .map(league => {
                 const roster_id = league.rosters
                     .find(roster => roster.user_id === user_id)?.roster_id

@@ -8,7 +8,7 @@ import Heading from "./heading";
 import { fetchMain } from "../../redux/actions/fetchMain";
 import Players from "../Players/players";
 import Leagues from "../Leagues/leagues";
-import Lineups from "../Lineups/lineups";
+import LineupsMain from "../Lineups/lineupsMain";
 import Leaguemates from "../Leaguemates/leaguemates";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
 
@@ -32,7 +32,7 @@ const Main = () => {
     if (leagues) {
         console.log({ leagues })
     }
-    console.log({ syncing, isLoadingProjectionDict })
+
     useEffect(() => {
         // Fetch allplayers, schedule, projections only on load if they don't exist
 
@@ -48,6 +48,8 @@ const Main = () => {
             dispatch(fetchMain('projections'));
         };
     }, [])
+
+
     useEffect(() => {
         const minute = new Date().getMinutes()
         const delay = (15 - (minute % 15)) * 60 * 1000;
@@ -106,10 +108,6 @@ const Main = () => {
             }
         })
 
-
-
-
-
     useEffect(() => {
         const getProjectedRecords = (weeks_to_fetch, includeTaxi, includeLocked, league_ids) => {
 
@@ -132,7 +130,7 @@ const Main = () => {
                             ...result.projectedRecordWeek
                         };
 
-                        dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
+
                     } else {
                         result_dict[result.week] = {
                             ...lineupChecks[result.week],
@@ -142,21 +140,17 @@ const Main = () => {
                             }
                         };
 
-                        dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
+
                     }
-                    const lc_keys = Object.keys(lineupChecks).filter(key => lineupChecks[key][`${includeTaxi}-${includeLocked}`])
 
-                    const weeks_remaining = weeks_to_fetch
-                        .find(w => w !== result.week && !lc_keys.includes(w));
-
-                    console.log({ weeks_remaining })
+                    dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
 
 
                     dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
                     syncing && dispatch(setState({ syncing: false }, 'USER'));
-                    return () => worker.terminate();
-
                 }
+                return () => worker.terminate();
+
             }
 
         }
@@ -169,11 +163,13 @@ const Main = () => {
                     || (week >= state.week && (!lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] || Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
                 )
             ) {
-                const league_ids = (week < state.week && lineupChecks[week])
-                    ? Object.keys(lineupChecks[week]).filter(key => lineupChecks[week][key]?.edited === true)
-                    : (week >= state.week && lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`])
-                        ? Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)
-                        : false
+                const league_ids = syncing
+                    ? [syncing.league_id]
+                    : (week < state.week && lineupChecks[week])
+                        ? Object.keys(lineupChecks[week]).filter(key => lineupChecks[week][key]?.edited === true)
+                        : (week >= state.week && lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`])
+                            ? Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)
+                            : false
 
                 console.log(`Syncing ${league_ids}`)
                 getProjectedRecords([week], includeTaxi, includeLocked, league_ids)
@@ -259,7 +255,7 @@ const Main = () => {
             display = <Leaguemates />
             break;
         case 'lineups':
-            display = (isLoadingMatchups || !(allplayers && schedule && projections)) ? loadingIcon : <Lineups />
+            display = (isLoadingMatchups || !(allplayers && schedule && projections)) ? loadingIcon : <LineupsMain />
             break;
         default:
             break;

@@ -15,6 +15,7 @@ export const fetchMatchups = () => {
             .filter(league => league.settings.status === 'in_season')
             .forEach(league => {
                 const league_matchups_to_update = [];
+                const start_week = league.settings.start_week;
 
                 const matchupPtsWeek = (key) => {
                     return league[key]?.reduce((acc, cur) => acc + cur.points, 0)
@@ -23,6 +24,8 @@ export const fetchMatchups = () => {
                 Object.keys(league)
                     .filter(key => key.startsWith('matchups_'))
                     .forEach(key => {
+                        const { wins, losses, ties } = league.settings;
+                        const games = wins + losses + ties;
                         if (!league[key]) {
                             league_matchups_to_update.push(key)
                         } else {
@@ -37,10 +40,19 @@ export const fetchMatchups = () => {
                                 )
                             ) {
                                 if (key_week + 1 === display_week) {
+                                    if ((
+                                        league.settings.league_average_match === 0
+                                        && games < display_week - start_week
+                                    ) || (
+                                            league.settings.league_average_match === 1
+                                            && games < (display_week - start_week) * 2
+                                        )) {
+                                        league_matchups_to_update.push(key)
+                                    }
                                     const mismatches = league.rosters
                                         .filter(roster => {
                                             const pts_from_matchups = (
-                                                Array.from(Array(display_week - 1).keys()).map(key => key + 1))
+                                                Array.from(Array(display_week - start_week).keys()).map(key => key + start_week))
                                                 .reduce((acc, cur) => acc + (league[`matchups_${cur}`]?.find(m => m.roster_id === roster.roster_id)?.points || 0), 0)
 
                                             if (roster.settings.fpts > pts_from_matchups) {
@@ -86,6 +98,7 @@ export const fetchMatchups = () => {
 
                 if (league_matchups_to_update.length > 0) {
                     all_matchups_to_update.push({
+                        name: league.name,
                         league_id: league.league_id,
                         weeks_to_update: Array.from(new Set(league_matchups_to_update))
                     })
