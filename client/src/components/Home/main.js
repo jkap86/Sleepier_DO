@@ -146,10 +146,14 @@ const Main = () => {
                     dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
 
 
+
+                }
+                setTimeout(() => {
                     dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
                     syncing && dispatch(setState({ syncing: false }, 'USER'));
-                }
-                return () => worker.terminate();
+                    return () => worker.terminate();
+                }, 2000)
+
 
             }
 
