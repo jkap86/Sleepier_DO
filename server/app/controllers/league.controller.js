@@ -222,7 +222,9 @@ exports.sync = async (req, res) => {
 
     const updated_league = await updateBatchedLeagues([{ league_id: req.body.league_id }])
 
-    const matchups_week = await axios.get(`https://api.sleeper.app/v1/league/${req.body.league_id}/matchups/${req.body.week}`)
+    const matchups_week = await axios.get(`https://api.sleeper.app/v1/league/${req.body.league_id}/matchups/${req.body.week}?nocache=${Date.now()}`)
+
+    console.log(matchups_week.data.find(m => m.roster_id === 10)?.starters)
 
     await League.upsert({
         ...updated_league[0],

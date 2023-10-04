@@ -11,6 +11,7 @@ import Leagues from "../Leagues/leagues";
 import LineupsMain from "../Lineups/lineupsMain";
 import Leaguemates from "../Leaguemates/leaguemates";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
+import { getRecordDict } from "../../functions/getRecordDict";
 
 const Main = () => {
     const params = useParams();
@@ -109,50 +110,57 @@ const Main = () => {
         })
 
     useEffect(() => {
-        const getProjectedRecords = (weeks_to_fetch, includeTaxi, includeLocked, league_ids) => {
+        const getProjectedRecords = (week_to_fetch, includeTaxi_fetch, includeLocked_fetch, league_ids) => {
 
             if (!isLoadingProjectionDict) {
                 dispatch(setState({ isLoadingProjectionDict: true }, 'LINEUPS'));
+
                 const worker = new Worker('/getRecordDictWeekWorker.js')
 
-                console.log({ weeks_to_fetch })
+                console.log({ week_to_fetch })
 
-                worker.postMessage({ weeks_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids })
-
-                const result_dict = {};
-                worker.onmessage = (e) => {
-                    const result = e.data;
-
-                    if (result.week < state.week) {
-                        console.log({ result_dict })
-                        result_dict[result.week] = {
-                            ...lineupChecks[result.week],
-                            ...result.projectedRecordWeek
-                        };
+                const result = getRecordDict({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi_fetch, includeLocked_fetch, rankings, user_id, recordType, league_ids })
 
 
-                    } else {
-                        result_dict[result.week] = {
-                            ...lineupChecks[result.week],
-                            [`${includeTaxi}-${includeLocked}`]: {
-                                ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
+
+
+                if (result.week < state.week) {
+
+                    dispatch(setState({
+                        lineupChecks: {
+                            ...lineupChecks,
+                            [result.week]: {
+                                ...lineupChecks[result.week],
                                 ...result.projectedRecordWeek
                             }
-                        };
-
-
-                    }
-
-                    dispatch(setState({ lineupChecks: { ...lineupChecks, ...result_dict } }, 'LINEUPS'));
+                        }
+                    }))
 
 
 
+                } else {
+                    console.log({ result })
+                    dispatch(setState({
+                        lineupChecks: {
+                            ...lineupChecks,
+                            [result.week]: {
+                                ...lineupChecks[result.week],
+                                [`${includeTaxi}-${includeLocked}`]: {
+                                    ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
+                                    ...result.projectedRecordWeek
+                                }
+                            }
+                        }
+                    }, 'LINEUPS'));
                 }
-                setTimeout(() => {
-                    dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
-                    syncing && dispatch(setState({ syncing: false }, 'USER'));
-                    return () => worker.terminate();
-                }, 2000)
+
+
+
+
+
+
+
+
 
 
             }
@@ -176,16 +184,33 @@ const Main = () => {
                             : false
 
                 console.log(`Syncing ${league_ids}`)
-                getProjectedRecords([week], includeTaxi, includeLocked, league_ids)
+                getProjectedRecords(week, includeTaxi, includeLocked, league_ids)
             } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length > 0 && !isLoadingProjectionDict) {
                 console.log('Getting proj record ALL..')
-                getProjectedRecords([weeks[0]], true, true)
+                getProjectedRecords(weeks[0], true, true)
             }
 
 
         }
     }, [leagues, week, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues])
 
+    useEffect(() => {
+        if (isLoadingProjectionDict) {
+            if (
+                tab === 'lineups'
+                && (
+                    (week < state.week && (lineupChecks[week] && !(lineupChecks[week] && Object.keys(lineupChecks[week]).find(key => lineupChecks[week][key]?.edited === true))))
+                    || (week >= state.week && (lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] && !Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
+                )
+            ) {
+                dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
+                syncing && dispatch(setState({ syncing: false }, 'USER'));
+            } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length === 0) {
+                dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
+
+            }
+        }
+    }, [dispatch, isLoadingProjectionDict, tab, week, state, lineupChecks, includeTaxi, includeLocked, syncing, weeks])
 
     useEffect(() => {
         const lc_weeks = Object.keys(lineupChecks)

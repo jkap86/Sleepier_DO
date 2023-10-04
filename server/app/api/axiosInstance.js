@@ -3,7 +3,9 @@ const axios = require('axios');
 
 const axiosInstance = axios.create({
     headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
     },
     httpsAgent: new https.Agent({ keepAlive: true }),
     timeout: 4000
