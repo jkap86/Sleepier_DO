@@ -7,7 +7,7 @@ import Roster from "../Home/roster";
 import { setState } from "../../redux/actions/state";
 import { useEffect } from "react";
 
-const LeagueInfo = ({
+const Leagues2View = ({
     league,
     scoring_settings,
     type
@@ -50,7 +50,7 @@ const LeagueInfo = ({
 
 
 
-    console.log(recordType)
+
     const standings_body = standings
         ?.map((team, index) => {
             let record;
@@ -349,4 +349,4 @@ const LeagueInfo = ({
     </>
 }
 
-export default LeagueInfo;
+export default Leagues2View;

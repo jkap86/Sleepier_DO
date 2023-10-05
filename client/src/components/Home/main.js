@@ -7,11 +7,11 @@ import { loadingIcon } from '../../functions/misc';
 import Heading from "./heading";
 import { fetchMain } from "../../redux/actions/fetchMain";
 import Players from "../Players/players";
-import Leagues from "../Leagues/leagues";
 import LineupsMain from "../Lineups/lineupsMain";
 import Leaguemates from "../Leaguemates/leaguemates";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
 import { getRecordDict } from "../../functions/getRecordDict";
+import LeaguesMain from "../Leagues/leaguesMain";
 
 const Main = () => {
     const params = useParams();
@@ -134,7 +134,7 @@ const Main = () => {
                                 ...result.projectedRecordWeek
                             }
                         }
-                    }))
+                    }, 'LINEUPS'))
 
 
 
@@ -278,7 +278,7 @@ const Main = () => {
             display = <Players />
             break;
         case 'leagues':
-            display = <Leagues />
+            display = <LeaguesMain />
             break;
         case 'leaguemates':
             display = <Leaguemates />

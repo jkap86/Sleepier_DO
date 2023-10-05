@@ -3,10 +3,11 @@ import TableMain from "../Home/tableMain";
 import { filterLeagues } from '../../functions/filterLeagues';
 import { setState } from "../../redux/actions/state";
 import { getTrendColor } from "../../functions/misc";
-import LeagueInfo from './leagueInfo';
-import { useEffect } from "react";
+import Leagues2Main from "./leagues2Main";
 
-const Leagues = () => {
+const LeaguesView = ({
+    getProjection
+}) => {
     const dispatch = useDispatch();
     const { user_id, leagues } = useSelector(state => state.user);
     const { type1, type2, state, allplayers, schedule, projections } = useSelector(state => state.main);
@@ -17,29 +18,7 @@ const Leagues = () => {
 
 
 
-    const getProjection = (league_id, playoff_week_start) => {
-        return Object.keys(lineupChecks)
-            .filter(key => parseInt(key) >= state.week && (parseInt(key) < playoff_week_start || playoff_week_start === 0))
-            .reduce((acc, cur) => {
-                return {
-                    wins: acc.wins
-                        + (lineupChecks[cur]['true-true']?.[league_id]?.win || 0)
-                        + (lineupChecks[cur]['true-true']?.[league_id]?.median_win || 0),
-                    losses: acc.losses
-                        + (lineupChecks[cur]['true-true']?.[league_id]?.loss || 0)
-                        + (lineupChecks[cur]['true-true']?.[league_id]?.median_loss || 0),
-                    ties: acc.ties + (lineupChecks[cur]['true-true']?.[league_id]?.tie || 0),
-                    fpts: lineupChecks[cur]['true-true']?.[league_id]?.lc_user?.proj_score_optimal || 0,
-                    fpts_against: lineupChecks[cur]['true-true']?.[league_id]?.lc_opp?.proj_score_optimal || 0
-                }
-            }, {
-                wins: 0,
-                losses: 0,
-                ties: 0,
-                fpts: 0,
-                fpts_against: 0
-            })
-    }
+
 
 
     const leagues_headers = [
@@ -117,7 +96,7 @@ const Leagues = () => {
                     }
                 ],
                 secondary_table: (
-                    <LeagueInfo
+                    <Leagues2Main
                         type={'secondary'}
                         league={league}
                         scoring_settings={league.scoring_settings}
@@ -189,4 +168,4 @@ const Leagues = () => {
 
 }
 
-export default Leagues;
+export default LeaguesView;

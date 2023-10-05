@@ -2,7 +2,8 @@ import TableMain from "../Home/tableMain";
 import { useMemo, useRef, useEffect } from "react";
 //  import LeagueInfo from "../Leagues/leagueInfo";
 import { useSelector, useDispatch } from 'react-redux';
-import LeagueInfo from "../Leagues/leagueInfo";
+
+import Leagues2Main from "../Leagues/leagues2Main";
 import { setState } from "../..//redux/actions/state";
 import PlayerModal from "./playerModal";
 import { getPlayerScore } from '../../functions/getPlayerScore';
@@ -13,8 +14,6 @@ const PlayerLeagues = ({
     leagues_taken,
     leagues_available,
     trend_games,
-    snapPercentageMin,
-    snapPercentageMax,
     player_id
 }) => {
     const dispatch = useDispatch();
@@ -195,23 +194,11 @@ const PlayerLeagues = ({
 
             ],
             secondary_table: (
-                <LeagueInfo
-                    stateAllPlayers={stateAllPlayers}
+                <Leagues2Main
+
                     scoring_settings={lo.scoring_settings}
                     league={lo}
-                    trendStats={stateStats}
-                    getPlayerScore={getPlayerScore}
-                    snapPercentageMin={snapPercentageMin}
-                    snapPercentageMax={snapPercentageMax}
-                    setPlayerModalVisible2={(value) => {
-                        dispatch(setState({
-                            modalVisible: {
-                                options: false,
-                                player: false,
-                                player2: value
-                            }
-                        }, 'PLAYERS'))
-                    }}
+
                     type='tertiary'
 
                 />
