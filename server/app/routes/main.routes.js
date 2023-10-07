@@ -14,6 +14,14 @@ module.exports = (app) => {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
 
+        fs.readFile(allplayers, 'utf8', (err, data) => {
+            if (err) {
+                res.status(500).send('Error reading allplayers file');
+                return;
+            }
+        })
+
+
         const stream = JSONStream.stringify();
 
         stream.pipe(res);
@@ -28,6 +36,13 @@ module.exports = (app) => {
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
+
+        fs.readFile(schedule, 'utf8', (err, data) => {
+            if (err) {
+                res.status(500).send('Error reading schedule file');
+                return;
+            }
+        })
 
         const stream = JSONStream.stringify();
 
