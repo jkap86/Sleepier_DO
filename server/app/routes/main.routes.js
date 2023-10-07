@@ -1,6 +1,7 @@
 'use strict'
 
-
+const fs = require('fs');
+const path = require('path');
 
 
 module.exports = (app) => {
@@ -8,7 +9,7 @@ module.exports = (app) => {
     var router = require("express").Router();
 
     router.get('/allplayers', (req, res) => {
-        const allplayers = require('../../allplayers.json');
+        const allplayers = path.join(__dirname, '../../allplayers.json');
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
@@ -23,7 +24,7 @@ module.exports = (app) => {
 
 
     router.get('/schedule', (req, res) => {
-        const schedule = require('../../schedule.json');
+        const schedule = path.join(__dirname, '../../schedule.json');
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
@@ -36,10 +37,17 @@ module.exports = (app) => {
     })
 
     router.get('/projections', (req, res) => {
-        const projections = require('../../projections.json');
-
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
+
+        const projections = path.join(__dirname, '../../projections.json');
+
+        fs.readFile(projections, 'utf8', (err, data) => {
+            if (err) {
+                res.status(500).send('Error reading projections file');
+                return;
+            }
+        })
 
         const stream = JSONStream.stringify();
 
