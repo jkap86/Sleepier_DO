@@ -1,15 +1,14 @@
 'use strict'
 
-const schedule = require('../../schedule.json');
-const allplayers = require('../../allplayers.json');
-const projections = require('../../projections.json');
+
+
 
 module.exports = (app) => {
     const JSONStream = require('JSONStream');
     var router = require("express").Router();
 
     router.get('/allplayers', (req, res) => {
-
+        const allplayers = require('../../allplayers.json');
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
@@ -24,7 +23,7 @@ module.exports = (app) => {
 
 
     router.get('/schedule', (req, res) => {
-
+        const schedule = require('../../schedule.json');
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
@@ -37,7 +36,7 @@ module.exports = (app) => {
     })
 
     router.get('/projections', (req, res) => {
-
+        const projections = require('../../projections.json');
 
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Transfer-Encoding', 'chunked');
