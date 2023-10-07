@@ -1,6 +1,6 @@
-export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked_fetch, rankings, user_id, recordType, league_ids }) => {
+export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids }) => {
 
-    console.log({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked_fetch, rankings, user_id, recordType })
+    console.log({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType })
 
     const getPlayerScore = (stats_array, scoring_settings, total = false) => {
 
@@ -44,7 +44,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
         return team_abbrev[team] || team
     }
 
-    const getLineupCheck = (matchup, league, stateAllPlayers, weeklyRankings, projections, schedule, includeTaxi, includeLocked_fetch, returnSuboptimal = false) => {
+    const getLineupCheck = (matchup, league, stateAllPlayers, weeklyRankings, projections, schedule, includeTaxi, includeLocked, returnSuboptimal = false) => {
 
         const position_map = {
             'QB': ['QB'],
@@ -111,7 +111,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     .filter(x =>
                         position_map[slot].includes(stateAllPlayers[x.id]?.position)
                         && (
-                            !includeLocked_fetch || x.kickoff > new Date().getTime()
+                            !includeLocked || x.kickoff > new Date().getTime()
                         )
                     )
                     .sort(
@@ -119,8 +119,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     )
 
                 let optimal_player;
-
-                if (includeLocked_fetch && kickoff < new Date().getTime()) {
+                console.log({ kickoff: kickoff - new Date().getTime(), includeLocked })
+                if (includeLocked && kickoff < new Date().getTime()) {
 
                     optimal_player = matchup.starters?.[index]
                 } else {
@@ -236,8 +236,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                 const matchup_user = league[`matchups_${week}`].find(m => m.roster_id === league.userRoster.roster_id);
                 const matchup_opp = league[`matchups_${week}`].find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== league.userRoster.roster_id)
 
-                const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked_fetch)
-                const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked_fetch)
+                const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
+                const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
 
                 let win, loss, tie;
 
@@ -315,12 +315,12 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                 const matchup_opp = league[`matchups_${week}`]
                     .find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== roster_id)
 
-                const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked_fetch, true)
-                const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked_fetch, true)
+                const lc_user = matchup_user && getLineupCheck(matchup_user, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked, true)
+                const lc_opp = matchup_opp && getLineupCheck(matchup_opp, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked, true)
 
                 const standings = league[`matchups_${week}`]
                     ?.map(m => {
-                        return m && getLineupCheck(m, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked_fetch)
+                        return m && getLineupCheck(m, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
                     })
                     ?.sort((a, b) => b[`proj_score_${recordType}`] - a[`proj_score_${recordType}`])
 

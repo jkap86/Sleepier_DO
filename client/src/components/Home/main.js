@@ -20,7 +20,7 @@ const Main = () => {
     const { state, tab, allplayers, schedule, projections } = useSelector(state => state.main);
     const { filteredData } = useSelector(state => state.filteredData);
     const {
-        includeTaxi_fetch,
+        includeTaxi,
         includeLocked,
         week,
         lineupChecks,
@@ -92,7 +92,7 @@ const Main = () => {
         if (leagues) {
             dispatch(fetchFilteredData(leagues, tab, state.league_season));
 
-            if (!matchups && !isLoadingMatchups) {
+            if (!matchups) {
                 dispatch(fetchMatchups())
             }
         }
@@ -110,16 +110,16 @@ const Main = () => {
         })
 
     useEffect(() => {
-        const getProjectedRecords = (week_to_fetch, includeTaxi_fetch, includeLocked_fetch, league_ids) => {
+        const getProjectedRecords = (week_to_fetch, includeTaxi, includeLocked, league_ids) => {
 
             if (!isLoadingProjectionDict) {
                 dispatch(setState({ isLoadingProjectionDict: true }, 'LINEUPS'));
 
                 const worker = new Worker('/getRecordDictWeekWorker.js')
 
-                console.log({ includeLocked_fetch })
+                console.log({ includeLocked })
 
-                const result = getRecordDict({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi_fetch, includeLocked_fetch, rankings, user_id, recordType, league_ids })
+                const result = getRecordDict({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids })
 
 
 
@@ -145,8 +145,8 @@ const Main = () => {
                             ...lineupChecks,
                             [result.week]: {
                                 ...lineupChecks[result.week],
-                                [`${includeTaxi_fetch}-${includeLocked}`]: {
-                                    ...lineupChecks[result.week]?.[`${includeTaxi_fetch}-${includeLocked}`],
+                                [`${includeTaxi}-${includeLocked}`]: {
+                                    ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
                                     ...result.projectedRecordWeek
                                 }
                             }
@@ -172,19 +172,19 @@ const Main = () => {
                 tab === 'lineups'
                 && (
                     (week < state.week && (!lineupChecks[week] || (lineupChecks[week] && Object.keys(lineupChecks[week]).find(key => lineupChecks[week][key]?.edited === true))))
-                    || (week >= state.week && (!lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`] || Object.keys(lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]?.[key]?.edited === true)))
+                    || (week >= state.week && (!lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] || Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
                 )
             ) {
                 const league_ids = syncing
                     ? [syncing.league_id]
                     : (week < state.week && lineupChecks[week])
                         ? Object.keys(lineupChecks[week]).filter(key => lineupChecks[week][key]?.edited === true)
-                        : (week >= state.week && lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`])
-                            ? Object.keys(lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]?.[key]?.edited === true)
+                        : (week >= state.week && lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`])
+                            ? Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)
                             : false
 
                 console.log(`Syncing ${league_ids}`)
-                getProjectedRecords(week, includeTaxi_fetch, includeLocked, league_ids)
+                getProjectedRecords(week, includeTaxi, includeLocked, league_ids)
             } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length > 0 && !isLoadingProjectionDict) {
                 console.log('Getting proj record ALL..')
                 getProjectedRecords(weeks[0], true, true)
@@ -192,7 +192,7 @@ const Main = () => {
 
 
         }
-    }, [leagues, week, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi_fetch, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues])
+    }, [leagues, week, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues])
 
     useEffect(() => {
         if (isLoadingProjectionDict) {
@@ -200,7 +200,7 @@ const Main = () => {
                 tab === 'lineups'
                 && (
                     (week < state.week && (lineupChecks[week] && !(lineupChecks[week] && Object.keys(lineupChecks[week]).find(key => lineupChecks[week][key]?.edited === true))))
-                    || (week >= state.week && (lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`] && !Object.keys(lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi_fetch}-${includeLocked}`]?.[key]?.edited === true)))
+                    || (week >= state.week && (lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] && !Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
                 )
             ) {
                 dispatch(setState({ isLoadingProjectionDict: false }, 'LINEUPS'));
@@ -210,7 +210,7 @@ const Main = () => {
 
             }
         }
-    }, [dispatch, isLoadingProjectionDict, tab, week, state, lineupChecks, includeTaxi_fetch, includeLocked, syncing, weeks])
+    }, [dispatch, isLoadingProjectionDict, tab, week, state, lineupChecks, includeTaxi, includeLocked, syncing, weeks])
 
     useEffect(() => {
         const lc_weeks = Object.keys(lineupChecks)
