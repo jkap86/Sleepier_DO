@@ -184,6 +184,14 @@ div.trade_search_wrapper div.search_wrapper ol.dropdown li button p img {
   position: static;
 }
 
+div.half {
+  display: flex;
+}
+div.half table.secondary.subs,
+div.half table.secondary.lineup {
+  width: 100%;
+}
+
 ol.page_numbers {
   display: flex;
   font-size: 3rem;

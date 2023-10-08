@@ -28,7 +28,11 @@ const initialState = {
     itemActive2: '',
     recordType: 'optimal',
     isLoadingProjectionDict: false,
-    sortBy: 'start'
+    sortBy: 'start',
+    page2_start: 1,
+    page2_bench: 1,
+    page2_start_opp: 1,
+    page2_bench_opp: 1
 }
 
 const lineupsReducer = (state = initialState, action) => {

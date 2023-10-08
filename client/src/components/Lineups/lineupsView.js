@@ -633,8 +633,9 @@ const LineupsView = () => {
 
 
     const players_body = Object.keys(playerLineupDict)
-        .sort((a, b) => filterLeagues(playerLineupDict[b][sortBy], type1, type2).length - filterLeagues(playerLineupDict[a][sortBy], type1, type2).length)
-        .map(player_id => {
+        ?.filter(player_id => !searched.id || searched.id === player_id)
+        ?.sort((a, b) => filterLeagues(playerLineupDict[b][sortBy], type1, type2).length - filterLeagues(playerLineupDict[a][sortBy], type1, type2).length)
+        ?.map(player_id => {
             const start = filterLeagues(playerLineupDict[player_id]?.start || [], type1, type2)
             const bench = filterLeagues(playerLineupDict[player_id]?.bench || [], type1, type2)
             const start_opp = filterLeagues(playerLineupDict[player_id]?.start_opp || [], type1, type2)
@@ -643,7 +644,7 @@ const LineupsView = () => {
             return {
                 id: player_id,
                 search: {
-                    text: allplayers[player_id]?.full_nam,
+                    text: allplayers[player_id]?.full_name,
                     image: {
                         src: player_id,
                         alt: 'player',

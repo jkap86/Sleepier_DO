@@ -197,6 +197,16 @@ div.trade_search_wrapper {
     }
 }
 
+div.half {
+    display: flex;
+
+    table.secondary.subs,
+    table.secondary.lineup {
+        width: 100%;
+    }
+
+}
+
 ol.page_numbers {
     display: flex;
     font-size: 3rem;

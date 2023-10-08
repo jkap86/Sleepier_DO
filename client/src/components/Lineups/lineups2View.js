@@ -26,7 +26,16 @@ const Lineups2View = ({
     const dispatch = useDispatch();
     const { state, allplayers, projections, schedule } = useSelector(state => state.main);
     const { user_id, username, syncing } = useSelector(state => state.user);
-    const { week, rankings, secondaryContent, itemActive2 } = useSelector(state => state.lineups);
+    const {
+        week,
+        rankings,
+        secondaryContent,
+        itemActive2,
+        page2_start,
+        page2_bench,
+        page2_start_opp,
+        page2_bench_opp
+    } = useSelector(state => state.lineups);
 
     const getInjuryAbbrev = (injury_status) => {
         switch (injury_status) {
@@ -377,6 +386,39 @@ const Lineups2View = ({
                     }
                 })
 
+    const getGroupHeader = (type) => {
+        return [
+            [
+                {
+                    text: type,
+                    colSpan: 1
+                }
+            ]
+        ]
+    }
+
+
+    const getGroupBody = (leagues) => {
+        return leagues
+            .map(league => {
+                return {
+                    id: league.league_id,
+                    list: [
+                        {
+                            text: league.name,
+                            colSpan: 1,
+                            className: 'left',
+                            image: {
+                                src: league.avatar,
+                                alt: 'league avatar',
+                                type: 'league'
+                            }
+                        }
+                    ]
+                }
+            })
+    }
+
     return league
         ? week < state.week
             ? <>
@@ -489,13 +531,41 @@ const Lineups2View = ({
                 }
             </>
         : <>
-            <div className="secondary nav">
-                <select>
-                    <option>start</option>
-                    <option>bench</option>
-                    <option>start_opp</option>
-                    <option>bench_opp</option>
-                </select>
+            <div className="half">
+                <div>
+                    <TableMain
+                        type={'secondary lineup'}
+                        headers={getGroupHeader('Starters')}
+                        body={getGroupBody(start)}
+                        page={page2_start}
+                        setPage={(value) => dispatch(setState({ page2_start: value }, 'LINEUPS'))}
+                    />
+                </div>
+                <div>
+                    <TableMain
+                        type={'secondary subs'}
+                        headers={getGroupHeader('Opp Starters')}
+                        body={getGroupBody(start_opp)}
+                        page={page2_start_opp}
+                        setPage={(value) => dispatch(setState({ page2_start_opp: value }, 'LINEUPS'))}
+                    />
+                </div>
+            </div>
+            <div className="half">
+                <TableMain
+                    type={'secondary lineup'}
+                    headers={getGroupHeader('Bench')}
+                    body={getGroupBody(bench)}
+                    page={page2_bench}
+                    setPage={(value) => dispatch(setState({ page2_bench: value }, 'LINEUPS'))}
+                />
+                <TableMain
+                    type={'secondary subs'}
+                    headers={getGroupHeader('Opp Bench')}
+                    body={getGroupBody(bench_opp)}
+                    page={page2_bench_opp}
+                    setPage={(value) => dispatch(setState({ page2_bench_opp: value }, 'LINEUPS'))}
+                />
             </div>
         </>
 }
