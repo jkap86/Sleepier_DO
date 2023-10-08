@@ -1,17 +1,33 @@
+import { useEffect } from 'react';
 import { loadingIcon } from '../../functions/misc';
 import { useSelector, useDispatch } from 'react-redux';
-import { setState } from '../../actions/actions';
+import { setState } from '../../redux/actions/state';
 import '../../css/css/trades.css';
-import Heading from '../Home/heading';
 import LmTrades from "./lmTrades";
 import PcTrades from "./pcTrades";
-import LoadData from '../Home/loadData';
+import { fetchLmTrades, fetchFilteredLmTrades } from '../../redux/actions/fetchUser';
 
 const Trades = () => {
     const dispatch = useDispatch();
     const trades = useSelector(state => state.trades);
-    const { state: stateState, allplayers } = useSelector(state => state.main);
-    const { leagues } = useSelector(state => state.user);
+    const { state, allplayers, tab } = useSelector(state => state.main);
+    const { leagues, user_id } = useSelector(state => state.user);
+
+
+    useEffect(() => {
+        if (trades.lmTrades.count === '') {
+            dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125))
+
+        }
+    }, [user_id, leagues, trades.lmTrades.count, state.league_season, dispatch])
+
+
+    useEffect(() => {
+        if ((trades.lmTrades.searched_player.id || trades.lmTrades.searched_manager.id) && !trades.lmTrades.searches.find(s => s.player === trades.lmTrades.searched_player.id && s.manager === trades.lmTrades.searched_manager.id)) {
+            console.log('fetching filtered lm trades')
+            dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, 0, 125))
+        }
+    }, [trades.lmTrades.searched_player, trades.lmTrades.searched_manager, trades.lmTrades.searches, dispatch])
 
     const picks_list = []
 
@@ -19,8 +35,8 @@ const Trades = () => {
         return Array.from(Array(5).keys()).map(round => {
             if (season !== 0) {
                 return picks_list.push({
-                    id: `${season + parseInt(stateState.league_season)} ${round + 1}.${null}`,
-                    text: `${season + parseInt(stateState.league_season)}  Round ${round + 1}`,
+                    id: `${season + parseInt(state.league_season)} ${round + 1}.${null}`,
+                    text: `${season + parseInt(state.league_season)}  Round ${round + 1}`,
                     image: {
                         src: null,
                         alt: 'pick headshot',
@@ -30,8 +46,8 @@ const Trades = () => {
             } else {
                 return Array.from(Array(12).keys()).map(order => {
                     return picks_list.push({
-                        id: `${season + parseInt(stateState.league_season)} ${round + 1}.${season === 0 ? (order + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 }) : null}`,
-                        text: `${season + parseInt(stateState.league_season)} ${season === 0 ? `${round + 1}.${(order + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 })}` : ` Round ${round + 1}`}`,
+                        id: `${season + parseInt(state.league_season)} ${round + 1}.${season === 0 ? (order + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 }) : null}`,
+                        text: `${season + parseInt(state.league_season)} ${season === 0 ? `${round + 1}.${(order + 1).toLocaleString("en-US", { minimumIntegerDigits: 2 })}` : ` Round ${round + 1}`}`,
                         image: {
                             src: null,
                             alt: 'pick headshot',
@@ -113,10 +129,9 @@ const Trades = () => {
 
 
     return <>
-        <Heading tab={'trades'} />
         <h2>
             {tradeCount?.toLocaleString("en-US")}
-            {` ${stateState.league_season} Trades`}
+            {` ${state.league_season} Trades`}
 
         </h2>
         <div className='navbar'>

@@ -119,7 +119,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     )
 
                 let optimal_player;
-                console.log({ kickoff: kickoff - new Date().getTime(), includeLocked })
+
                 if (includeLocked && kickoff < new Date().getTime()) {
 
                     optimal_player = matchup.starters?.[index]
@@ -310,7 +310,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
 
                 const matchup_user = league[`matchups_${week}`]
                     .find(m => m.roster_id === roster_id)
-                console.log({ matchup_user })
+
 
                 const matchup_opp = league[`matchups_${week}`]
                     .find(m => m.matchup_id === matchup_user.matchup_id && m.roster_id !== roster_id)

@@ -12,6 +12,7 @@ import Leaguemates from "../Leaguemates/leaguemates";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
 import { getRecordDict } from "../../functions/getRecordDict";
 import LeaguesMain from "../Leagues/leaguesMain";
+import Trades from "../Trades/trades";
 
 const Main = () => {
     const params = useParams();
@@ -276,6 +277,9 @@ const Main = () => {
     switch (tab) {
         case 'players':
             display = <Players />
+            break;
+        case 'trades':
+            display = <Trades />
             break;
         case 'leagues':
             display = <LeaguesMain />

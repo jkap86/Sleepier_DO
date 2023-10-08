@@ -9,6 +9,7 @@ const initialState = {
     includeTaxi: true,
     includeLocked: true,
     projectedRecordDictAll: {},
+    playerLineupDict: {},
     week: 1,
     lineupChecks: {},
     column1: 'Suboptimal',
@@ -22,10 +23,12 @@ const initialState = {
     itemActive: '',
     page: 1,
     searched: '',
+    primaryContent: 'Lineup Check',
     secondaryContent: 'Optimal',
     itemActive2: '',
     recordType: 'optimal',
-    isLoadingProjectionDict: false
+    isLoadingProjectionDict: false,
+    sortBy: 'start'
 }
 
 const lineupsReducer = (state = initialState, action) => {

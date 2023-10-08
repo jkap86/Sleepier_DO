@@ -5,12 +5,13 @@ import { setState } from "../../redux/actions/state";
 import { filterLeagues } from "../../functions/filterLeagues";
 import { includeTaxiIcon, includeLockedIcon } from "../../functions/filterIcons";
 import Lineups2Main from "./lineups2Main";
+import { useCallback } from "react";
 
 
 const LineupsView = () => {
     const dispatch = useDispatch();
-    const { state, projections, type1, type2 } = useSelector(state => state.main);
-    const { leagues } = useSelector(state => state.user);
+    const { state, projections, type1, type2, allplayers } = useSelector(state => state.main);
+    const { leagues, username } = useSelector(state => state.user);
     const {
         includeTaxi,
         includeLocked,
@@ -28,9 +29,13 @@ const LineupsView = () => {
         page,
         searched,
         recordType,
-        isLoadingProjectionDict
+        playerLineupDict,
+        primaryContent,
+        sortBy
     } = useSelector(state => state.lineups);
 
+
+    console.log({ playerLineupDict })
     const hash = `${includeTaxi}-${includeLocked}`
 
     const columnOptions = week < state.week
@@ -166,6 +171,46 @@ const LineupsView = () => {
                     </select></label>,
                 colSpan: 2,
                 className: 'small half end'
+            }
+        ]
+    ]
+
+    const players_headers = [
+        [
+            {
+                text: 'Player',
+                colSpan: 3,
+                rowSpan: 2
+            },
+            {
+                text: username,
+                colSpan: 2
+            },
+            {
+                text: 'Opp',
+                colSpan: 2
+            }
+        ],
+        [
+            {
+                text: 'Start',
+                colSpan: 1,
+                onClick: () => dispatch(setState({ sortBy: 'start' }, 'LINEUPS')),
+            },
+            {
+                text: 'Bench',
+                colSpan: 1,
+                onClick: () => dispatch(setState({ sortBy: 'bench' }, 'LINEUPS'))
+            },
+            {
+                text: 'Start',
+                colSpan: 1,
+                onClick: () => dispatch(setState({ sortBy: 'start_opp' }, 'LINEUPS'))
+            },
+            {
+                text: 'Bench',
+                colSpan: 1,
+                onClick: () => dispatch(setState({ sortBy: 'bench_opp' }, 'LINEUPS'))
             }
         ]
     ]
@@ -586,6 +631,57 @@ const LineupsView = () => {
             }
         })
 
+
+    const players_body = Object.keys(playerLineupDict)
+        .sort((a, b) => filterLeagues(playerLineupDict[b][sortBy], type1, type2).length - filterLeagues(playerLineupDict[a][sortBy], type1, type2).length)
+        .map(player_id => {
+            const start = filterLeagues(playerLineupDict[player_id]?.start || [], type1, type2)
+            const bench = filterLeagues(playerLineupDict[player_id]?.bench || [], type1, type2)
+            const start_opp = filterLeagues(playerLineupDict[player_id]?.start_opp || [], type1, type2)
+            const bench_opp = filterLeagues(playerLineupDict[player_id]?.bench_opp || [], type1, type2)
+
+            return {
+                id: player_id,
+                search: {
+                    text: allplayers[player_id]?.full_nam,
+                    image: {
+                        src: player_id,
+                        alt: 'player',
+                        type: 'player'
+                    }
+                },
+                list: [
+                    {
+                        text: allplayers[player_id]?.full_name,
+                        image: {
+                            src: player_id,
+                            alt: 'player',
+                            type: 'player'
+                        },
+                        className: 'left',
+                        colSpan: 3
+                    },
+                    {
+                        text: start.length.toString(),
+                        colSpan: 1
+                    },
+                    {
+                        text: bench.length.toString(),
+                        colSpan: 1
+                    },
+                    {
+                        text: start_opp.length.toString(),
+                        colSpan: 1
+                    },
+                    {
+                        text: bench_opp.length.toString(),
+                        colSpan: 1
+                    }
+                ]
+            }
+        })
+
+
     const projectedRecord = week >= state.week
         ? filterLeagues((leagues || []), type1, type2)
             .reduce((acc, cur) => {
@@ -657,6 +753,15 @@ const LineupsView = () => {
                 </select>
             </h1>
             <h2>
+                <select
+                    value={primaryContent}
+                    onChange={(e) => dispatch(setState({ primaryContent: e.target.value }, 'LINEUPS'))}
+                >
+                    <option>Lineup Check</option>
+                    <option>Starters/Bench</option>
+                </select>
+            </h2>
+            <h2>
                 <table className="summary">
                     <tbody>
                         <tr>
@@ -690,21 +795,31 @@ const LineupsView = () => {
 
 
             </h2>
-            <TableMain
-                id={'Lineups'}
-                type={'primary'}
-                headers={lineups_headers}
-                body={lineups_body}
-                page={page}
-                setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
-                itemActive={itemActive}
-                setItemActive={(value) => dispatch(setState({ itemActive: value }, 'LINEUPS'))}
-                search={true}
-                searched={searched}
-                setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
-                options2={[includeLockedIcon(includeLocked, (value) => dispatch(setState({ includeLocked: value }, 'LINEUPS')))]}
-                options1={[includeTaxiIcon(includeTaxi, (value) => dispatch(setState({ includeTaxi: value }, 'LINEUPS')))]}
-            />
+            {
+                primaryContent === 'Lineup Check'
+                    ? <TableMain
+                        id={'Lineups'}
+                        type={'primary'}
+                        headers={lineups_headers}
+                        body={lineups_body}
+                        page={page}
+                        setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
+                        itemActive={itemActive}
+                        setItemActive={(value) => dispatch(setState({ itemActive: value }, 'LINEUPS'))}
+                        search={true}
+                        searched={searched}
+                        setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
+                        options2={[includeLockedIcon(includeLocked, (value) => dispatch(setState({ includeLocked: value }, 'LINEUPS')))]}
+                        options1={[includeTaxiIcon(includeTaxi, (value) => dispatch(setState({ includeTaxi: value }, 'LINEUPS')))]}
+                    />
+                    : <TableMain
+                        id={'Lineups'}
+                        type={'primary'}
+                        headers={players_headers}
+                        body={players_body}
+                    />
+            }
+
         </>
 }
 
