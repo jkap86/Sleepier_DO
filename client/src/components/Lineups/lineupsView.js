@@ -677,7 +677,13 @@ const LineupsView = () => {
                         text: bench_opp.length.toString(),
                         colSpan: 1
                     }
-                ]
+                ],
+                secondary_table: <Lineups2Main
+                    start={start}
+                    bench={bench}
+                    start_opp={start_opp}
+                    bench_opp={bench_opp}
+                />
             }
         })
 
@@ -817,6 +823,13 @@ const LineupsView = () => {
                         type={'primary'}
                         headers={players_headers}
                         body={players_body}
+                        itemActive={itemActive}
+                        setItemActive={(value) => dispatch(setState({ itemActive: value }, 'LINEUPS'))}
+                        search={true}
+                        searched={searched}
+                        setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
+                        page={page}
+                        setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
                     />
             }
 

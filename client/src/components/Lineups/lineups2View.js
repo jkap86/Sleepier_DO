@@ -17,7 +17,11 @@ const Lineups2View = ({
     proj_score_user_actual,
     proj_score_user_optimal,
     proj_score_opp_actual,
-    proj_score_opp_optimal
+    proj_score_opp_optimal,
+    start,
+    bench,
+    start_opp,
+    bench_opp
 }) => {
     const dispatch = useDispatch();
     const { state, allplayers, projections, schedule } = useSelector(state => state.main);
@@ -41,7 +45,7 @@ const Lineups2View = ({
         }
     }
 
-    const oppRoster = league.rosters.find(r => r.roster_id === matchup_opp?.roster_id);
+    const oppRoster = league?.rosters.find(r => r.roster_id === matchup_opp?.roster_id);
 
     const active_player = lineup_check?.find(x => `${x.slot}_${x.index}` === itemActive2)?.current_player
 
@@ -373,115 +377,126 @@ const Lineups2View = ({
                     }
                 })
 
-    return week < state.week
-        ? <>
-            <div className="secondary nav">
+    return league
+        ? week < state.week
+            ? <>
+                <div className="secondary nav">
 
-                <button
-                    className={`sync ${syncing ? 'rotate' : 'click'}`}
-                    onClick={syncing ? null : () => handleSync(league.league_id)}
-                >
-                    <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
-                </button>
-
-            </div>
-            {
-                <>
-                    <Roster
-                        league={league}
-                        roster={{
-                            ...league.userRoster,
-                            players: matchup_user?.players,
-                            starters: matchup_user?.starters,
-                        }}
-                        type={'tertiary subs'}
-                        previous={true}
-                        players_projections={players_projections}
-                        players_points={matchup_user?.players_points}
-                    />
-                    <Roster
-                        league={league}
-                        roster={{
-                            ...oppRoster,
-                            players: matchup_opp?.players,
-                            starters: matchup_opp?.starters
-                        }}
-                        type={'tertiary subs'}
-                        previous={true}
-                        players_projections={players_projections}
-                        players_points={matchup_opp?.players_points}
-                    />
-                </>
-            }
-        </>
-        : <>
-            <div className="secondary nav">
-                <div>
-                    <button>
-                        Lineup
+                    <button
+                        className={`sync ${syncing ? 'rotate' : 'click'}`}
+                        onClick={syncing ? null : () => handleSync(league.league_id)}
+                    >
+                        <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
                     </button>
-                </div>
-                <button
-                    className={`sync ${syncing ? 'rotate' : 'click'}`}
-                    onClick={syncing ? null : () => handleSync(league.league_id)}
-                >
-                    <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
-                </button>
-                <div>
-                    {
-                        itemActive2
-                            ? <button
-                                className={secondaryContent === 'Options' ? 'active click' : !itemActive2 ? 'inactive' : 'click'}
-                                onClick={itemActive2 ? () => dispatch(setState({ secondaryContent: 'Options' }, 'LINEUPS')) : null}
-                            >
-                                Options
-                            </button>
-                            : <>
-                                <button
-                                    className={secondaryContent === 'Optimal' ? 'active click' : 'click'}
-                                    onClick={() => dispatch(setState({ secondaryContent: 'Optimal' }, 'LINEUPS'))}
-                                >
-                                    Optimal
-                                </button>
-
-                                <button
-                                    className={secondaryContent === 'Opp-Lineup' ? 'active click' : 'click'}
-                                    onClick={() => dispatch(setState({ secondaryContent: 'Opp-Lineup' }, 'LINEUPS'))}
-                                >
-                                    Opp-Lineup
-                                </button>
-                                <button
-                                    className={secondaryContent === 'Opp-Optimal' ? 'active click' : 'click'}
-                                    onClick={() => dispatch(setState({ secondaryContent: 'Opp-Optimal' }, 'LINEUPS'))}
-                                >
-                                    Opp-Optimal
-                                </button>
-                            </>
-                    }
 
                 </div>
-            </div>
-            {
-                lineup_body?.length >= 0 ?
+                {
                     <>
-                        <TableMain
-                            type={'secondary lineup'}
-                            headers={lineup_headers}
-                            body={lineup_body}
-                            itemActive={itemActive2}
-                            setItemActive={(value) => dispatch(setState({ itemActive2: value }, 'LINEUPS'))}
+                        <Roster
+                            league={league}
+                            roster={{
+                                ...league.userRoster,
+                                players: matchup_user?.players,
+                                starters: matchup_user?.starters,
+                            }}
+                            type={'tertiary subs'}
+                            previous={true}
+                            players_projections={players_projections}
+                            players_points={matchup_user?.players_points}
                         />
-                        <TableMain
-                            type={'secondary subs'}
-                            headers={subs_headers}
-                            body={subs_body}
+                        <Roster
+                            league={league}
+                            roster={{
+                                ...oppRoster,
+                                players: matchup_opp?.players,
+                                starters: matchup_opp?.starters
+                            }}
+                            type={'tertiary subs'}
+                            previous={true}
+                            players_projections={players_projections}
+                            players_points={matchup_opp?.players_points}
                         />
                     </>
-                    :
+                }
+            </>
+            : <>
+                <div className="secondary nav">
                     <div>
-                        <h1>No Matchups</h1>
+                        <button>
+                            Lineup
+                        </button>
                     </div>
-            }
+                    <button
+                        className={`sync ${syncing ? 'rotate' : 'click'}`}
+                        onClick={syncing ? null : () => handleSync(league.league_id)}
+                    >
+                        <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
+                    </button>
+                    <div>
+                        {
+                            itemActive2
+                                ? <button
+                                    className={secondaryContent === 'Options' ? 'active click' : !itemActive2 ? 'inactive' : 'click'}
+                                    onClick={itemActive2 ? () => dispatch(setState({ secondaryContent: 'Options' }, 'LINEUPS')) : null}
+                                >
+                                    Options
+                                </button>
+                                : <>
+                                    <button
+                                        className={secondaryContent === 'Optimal' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent: 'Optimal' }, 'LINEUPS'))}
+                                    >
+                                        Optimal
+                                    </button>
+
+                                    <button
+                                        className={secondaryContent === 'Opp-Lineup' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent: 'Opp-Lineup' }, 'LINEUPS'))}
+                                    >
+                                        Opp-Lineup
+                                    </button>
+                                    <button
+                                        className={secondaryContent === 'Opp-Optimal' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent: 'Opp-Optimal' }, 'LINEUPS'))}
+                                    >
+                                        Opp-Optimal
+                                    </button>
+                                </>
+                        }
+
+                    </div>
+                </div>
+                {
+                    lineup_body?.length >= 0 ?
+                        <>
+                            <TableMain
+                                type={'secondary lineup'}
+                                headers={lineup_headers}
+                                body={lineup_body}
+                                itemActive={itemActive2}
+                                setItemActive={(value) => dispatch(setState({ itemActive2: value }, 'LINEUPS'))}
+                            />
+                            <TableMain
+                                type={'secondary subs'}
+                                headers={subs_headers}
+                                body={subs_body}
+                            />
+                        </>
+                        :
+                        <div>
+                            <h1>No Matchups</h1>
+                        </div>
+                }
+            </>
+        : <>
+            <div className="secondary nav">
+                <select>
+                    <option>start</option>
+                    <option>bench</option>
+                    <option>start_opp</option>
+                    <option>bench_opp</option>
+                </select>
+            </div>
         </>
 }
 

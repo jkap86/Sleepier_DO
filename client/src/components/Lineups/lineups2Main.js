@@ -18,7 +18,11 @@ const Lineups2Main = ({
     proj_score_user_actual,
     proj_score_user_optimal,
     proj_score_opp_actual,
-    proj_score_opp_optimal
+    proj_score_opp_optimal,
+    start,
+    bench,
+    start_opp,
+    bench_opp
 }) => {
     const dispatch = useDispatch();
     const { user_id, username } = useSelector(state => state.user);
@@ -53,6 +57,10 @@ const Lineups2Main = ({
         proj_score_user_optimal={proj_score_user_optimal}
         proj_score_opp_actual={proj_score_opp_actual}
         proj_score_opp_optimal={proj_score_opp_optimal}
+        start={start}
+        bench={bench}
+        start_opp={start_opp}
+        bench_opp={bench_opp}
     />
 }
 
