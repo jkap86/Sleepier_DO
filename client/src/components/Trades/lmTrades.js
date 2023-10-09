@@ -25,7 +25,7 @@ const LmTrades = ({
             || []
         )
 
-    console.log(tradesDisplay)
+    console.log(trades.lmTrades.searches)
 
     const trades_body = tradesDisplay
         ?.sort((a, b) => parseInt(b.status_updated) - parseInt(a.status_updated))

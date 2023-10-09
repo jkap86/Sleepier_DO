@@ -5,7 +5,7 @@ import { setState } from '../../redux/actions/state';
 import '../../css/css/trades.css';
 import LmTrades from "./lmTrades";
 import PcTrades from "./pcTrades";
-import { fetchLmTrades, fetchFilteredLmTrades } from '../../redux/actions/fetchUser';
+import { fetchLmTrades, fetchFilteredLmTrades, fetchPriceCheckTrades } from '../../redux/actions/fetchUser';
 
 const Trades = () => {
     const dispatch = useDispatch();
@@ -28,6 +28,21 @@ const Trades = () => {
             dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, 0, 125))
         }
     }, [trades.lmTrades.searched_player, trades.lmTrades.searched_manager, trades.lmTrades.searches, dispatch])
+
+
+    useEffect(() => {
+        if (
+            trades.pricecheckTrades.pricecheck_player.id
+            && !trades.pricecheckTrades.searches
+                .find(
+                    pc => pc.pricecheck_player === trades.pricecheckTrades.pricecheck_player.id
+                        && (!trades.pricecheckTrades.pricecheck_player2?.id
+                            || pc.pricecheck_player2 === trades.pricecheckTrades.pricecheck_player2.id)
+                )
+        ) {
+            dispatch(fetchPriceCheckTrades(trades.pricecheckTrades.pricecheck_player.id, trades.pricecheckTrades.pricecheck_player2.id, 0, 125))
+        }
+    }, [trades.pricecheckTrades.pricecheck_player, trades.pricecheckTrades.pricecheck_player2, dispatch])
 
     const picks_list = []
 
