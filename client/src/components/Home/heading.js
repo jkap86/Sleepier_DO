@@ -21,7 +21,7 @@ const Heading = () => {
         <Link to="/" className="home">
             Home
         </Link>
-        <a target='_blank' className='link' href={`http://18.206.180.1:5000/`}>
+        <a target='_blank' className='link' href={`https://sleepiersplits-73b0aab383b9.herokuapp.com/`}>
             Sleepier Splits BETA
         </a>
         <div className="heading">
