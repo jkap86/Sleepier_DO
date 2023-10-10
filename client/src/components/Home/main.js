@@ -33,6 +33,7 @@ const Main = () => {
 
     if (leagues) {
         console.log({ leagues })
+        console.log({ lineupChecks })
     }
 
     useEffect(() => {
@@ -113,58 +114,58 @@ const Main = () => {
     useEffect(() => {
         const getProjectedRecords = (week_to_fetch, includeTaxi, includeLocked, league_ids) => {
 
-            if (!isLoadingProjectionDict) {
-                dispatch(setState({ isLoadingProjectionDict: true }, 'LINEUPS'));
 
-                const worker = new Worker('/getRecordDictWeekWorker.js')
+            dispatch(setState({ isLoadingProjectionDict: true }, 'LINEUPS'));
 
-                console.log({ includeLocked })
+            const worker = new Worker('/getRecordDictWeekWorker.js')
 
-                const result = getRecordDict({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids })
+            console.log({ includeLocked })
 
-
+            const result = getRecordDict({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids })
 
 
-                if (result.week < state.week) {
 
-                    dispatch(setState({
-                        lineupChecks: {
-                            ...lineupChecks,
-                            [result.week]: {
-                                ...lineupChecks[result.week],
+
+            if (result.week < state.week) {
+
+                dispatch(setState({
+                    lineupChecks: {
+                        ...lineupChecks,
+                        [result.week]: {
+                            ...lineupChecks[result.week],
+                            ...result.projectedRecordWeek
+                        }
+                    }
+                }, 'LINEUPS'))
+
+
+
+            } else {
+                console.log({ result })
+                dispatch(setState({
+                    lineupChecks: {
+                        ...lineupChecks,
+                        [result.week]: {
+                            ...lineupChecks[result.week],
+                            [`${includeTaxi}-${includeLocked}`]: {
+                                ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
                                 ...result.projectedRecordWeek
                             }
                         }
-                    }, 'LINEUPS'))
-
-
-
-                } else {
-                    console.log({ result })
-                    dispatch(setState({
-                        lineupChecks: {
-                            ...lineupChecks,
-                            [result.week]: {
-                                ...lineupChecks[result.week],
-                                [`${includeTaxi}-${includeLocked}`]: {
-                                    ...lineupChecks[result.week]?.[`${includeTaxi}-${includeLocked}`],
-                                    ...result.projectedRecordWeek
-                                }
-                            }
-                        }
-                    }, 'LINEUPS'));
-                }
-
-
-
-
-
-
-
-
-
-
+                    }
+                }, 'LINEUPS'));
             }
+
+
+
+
+
+
+
+
+
+
+
 
         }
         if (leagues && allplayers && schedule && projections && matchups) {
@@ -175,6 +176,7 @@ const Main = () => {
                     (week < state.week && (!lineupChecks[week] || (lineupChecks[week] && Object.keys(lineupChecks[week]).find(key => lineupChecks[week][key]?.edited === true))))
                     || (week >= state.week && (!lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`] || Object.keys(lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]).find(key => lineupChecks[week]?.[`${includeTaxi}-${includeLocked}`]?.[key]?.edited === true)))
                 )
+                && !isLoadingProjectionDict
             ) {
                 const league_ids = syncing
                     ? [syncing.league_id]
@@ -186,14 +188,14 @@ const Main = () => {
 
                 console.log(`Syncing ${league_ids}`)
                 getProjectedRecords(week, includeTaxi, includeLocked, league_ids)
-            } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length > 0 && !isLoadingProjectionDict) {
+            } else if (tab === 'leagues' && recordTypeLeagues === 'Projected Record' && weeks.length > 0) {
                 console.log('Getting proj record ALL..')
                 getProjectedRecords(weeks[0], true, true)
             }
 
 
         }
-    }, [leagues, week, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues])
+    }, [leagues, week, weeks, state, allplayers, schedule, projections, dispatch, includeLocked, includeTaxi, lineupChecks, rankings, user_id, recordType, isLoadingProjectionDict, matchups, tab, recordTypeLeagues, lineupChecks])
 
     useEffect(() => {
         if (isLoadingProjectionDict) {
