@@ -190,6 +190,7 @@ div.half {
 div.half table.secondary.subs,
 div.half table.secondary.lineup {
   width: 100%;
+  margin-top: 0;
 }
 
 ol.page_numbers {

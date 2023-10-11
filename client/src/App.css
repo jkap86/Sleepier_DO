@@ -11,6 +11,14 @@ body {
   --rb: #00ceb8;
   --wr: #58a7ff;
   --te: #ffae58;
+  --font1: 'Ubuntu Mono',
+    sans-serif;
+  --font2: 'Pulang',
+    sans-serif;
+  --font3: 'GROUPE',
+    sans-serif;
+  --font4: 'Monomaniac One',
+    sans-serif;
   font-size: 1vmin;
   background-color: var(--color1);
 
@@ -209,6 +217,18 @@ i {
 input::-webkit-inner-spin-button,
 input::-webkit-outer-spin-button {
   appearance: none;
+}
+
+select.active {
+  background-color: inherit;
+  color: var(--color2);
+
+  font-size: inherit;
+  text-align: center;
+  font-family: var(--font4);
+  border: none;
+  box-shadow: 0 0 1rem var(--color2);
+  background-color: var(--color4);
 }
 
 ::-webkit-scrollbar {

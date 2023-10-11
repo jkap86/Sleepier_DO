@@ -5,7 +5,7 @@ import { setState } from "../../redux/actions/state";
 import { filterLeagues } from "../../functions/filterLeagues";
 import { includeTaxiIcon, includeLockedIcon } from "../../functions/filterIcons";
 import Lineups2Main from "./lineups2Main";
-import { useCallback } from "react";
+import { positionFilterIcon, teamFilterIcon, draftClassFilterIcon } from "../../functions/filterIcons";
 
 
 const LineupsView = () => {
@@ -31,7 +31,8 @@ const LineupsView = () => {
         recordType,
         playerLineupDict,
         primaryContent,
-        sortBy
+        sortBy,
+        filters
     } = useSelector(state => state.lineups);
 
 
@@ -633,7 +634,17 @@ const LineupsView = () => {
 
 
     const players_body = Object.keys(playerLineupDict)
-        ?.filter(player_id => !searched.id || searched.id === player_id)
+        ?.filter(player_id => (
+            (!searched.id || searched.id === player_id)
+            && (
+                filters.position === allplayers[player_id]?.position
+                || filters.position.split('/').includes(allplayers[player_id]?.position?.slice(0, 1))
+            ) && (
+                filters.team === 'All' || allplayers[player_id]?.team === filters.team
+            ) && (
+                filters.draftClass === 'All' || parseInt(filters.draftClass) === (state.league_season - allplayers[parseInt(player_id)]?.years_exp)
+            )
+        ))
         ?.sort((a, b) => filterLeagues(playerLineupDict[b][sortBy], type1, type2).length - filterLeagues(playerLineupDict[a][sortBy], type1, type2).length)
         ?.map(player_id => {
             const start = filterLeagues(playerLineupDict[player_id]?.start || [], type1, type2)
@@ -742,6 +753,20 @@ const LineupsView = () => {
                 fpts_against: 0
             })
 
+    const teamFilter = teamFilterIcon(filters.team, (team) => dispatch(setState({ filters: { ...filters, team: team } }, 'LINEUPS')))
+
+    const positionFilter = positionFilterIcon(filters.position, (pos) => dispatch(setState({ filters: { ...filters, position: pos } }, 'LINEUPS')), false)
+
+    const player_ids = Object.keys(allplayers || {}).filter(player_id => parseInt(allplayers[player_id]?.years_exp) >= 0)
+
+    const draftClassYears = Array.from(
+        new Set(
+            player_ids
+                ?.map(player_id => state.league_season - allplayers[player_id]?.years_exp)
+        )
+    )?.sort((a, b) => b - a)
+
+    const draftClassFilter = draftClassFilterIcon(filters.draftClass, (dc) => dispatch(setState({ filters: { ...filters, draftClass: dc } }, 'LINEUPS')), draftClassYears)
 
     return (week < state.week && !lineupChecks?.[week])
         || (week >= state.week && !lineupChecks?.[week]?.[hash])
@@ -751,6 +776,7 @@ const LineupsView = () => {
                 Week <select
                     value={week}
                     onChange={(e) => dispatch(setState({ week: e.target.value }, 'LINEUPS'))}
+                    className="active click"
                 >
                     {
                         Array.from(Array(18).keys()).map(key =>
@@ -763,6 +789,7 @@ const LineupsView = () => {
                 <select
                     value={primaryContent}
                     onChange={(e) => dispatch(setState({ primaryContent: e.target.value }, 'LINEUPS'))}
+                    className="active click"
                 >
                     <option>Lineup Check</option>
                     <option>Starters/Bench</option>
@@ -831,6 +858,8 @@ const LineupsView = () => {
                         setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
                         page={page}
                         setPage={(value) => dispatch(setState({ page: value }, 'LINEUPS'))}
+                        options1={[teamFilter]}
+                        options2={[positionFilter, draftClassFilter]}
                     />
             }
 

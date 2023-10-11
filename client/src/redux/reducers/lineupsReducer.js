@@ -32,7 +32,12 @@ const initialState = {
     page2_start: 1,
     page2_bench: 1,
     page2_start_opp: 1,
-    page2_bench_opp: 1
+    page2_bench_opp: 1,
+    filters: {
+        position: 'W/R/T/Q',
+        team: 'All',
+        draftClass: 'All'
+    },
 }
 
 const lineupsReducer = (state = initialState, action) => {
