@@ -12,8 +12,8 @@ const initialState = {
         team: 'All',
         draftClass: 'All'
     },
-    statType1: 'SF Dynasty (KTC)',
-    statType2: 'SF Trend Dynasty (KTC)',
+    statType1: 'Record',
+    statType2: 'Win %',
     snapPercentageMin: 0,
     snapPercentageMax: 100,
     modalVisible: {
