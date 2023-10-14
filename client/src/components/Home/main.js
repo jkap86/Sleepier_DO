@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { resetState, setState } from '../../redux/actions/state';
-import { fetchUser, fetchLeagues, fetchFilteredData } from "../../redux/actions/fetchUser";
+import { fetchUser, fetchLeagues, fetchFilteredData, fetchLmPlayerShares } from "../../redux/actions/fetchUser";
 import { loadingIcon } from '../../functions/misc';
 import Heading from "./heading";
 import { fetchMain } from "../../redux/actions/fetchMain";
@@ -86,6 +86,7 @@ const Main = () => {
 
     useEffect(() => {
         if (user_id && !leagues) {
+            dispatch(fetchLmPlayerShares(user_id))
             dispatch(fetchLeagues(user_id))
         }
     }, [dispatch, user_id, leagues])

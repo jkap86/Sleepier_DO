@@ -189,7 +189,7 @@ export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
 
         console.log({ lmplayershares: lmplayershares.data.sort((a, b) => a.username > b.username ? 1 : -1) })
 
-        dispatch({ type: 'SET_STATE_USER', payload: lmplayershares.data });
+        dispatch({ type: 'SET_STATE_USER', payload: { lmplayershares: lmplayershares.data } });
     } catch (err) {
         console.log(err)
     }
