@@ -14,11 +14,12 @@ const getAllPlayers = async () => {
         sleeper_players = Object.fromEntries(Object.keys(sleeper_players.data)
             .filter(player_id => sleeper_players.data[player_id].active && !['OL', 'T', 'OT', 'G', 'OG', 'C'].includes(sleeper_players.data[player_id].position))
             .map(key => {
-                const { position, college, number, birth_date, age, full_name, active, team, player_id, search_full_name, years_exp } = sleeper_players.data[key];
+                const { position, fantasy_positions, college, number, birth_date, age, full_name, active, team, player_id, search_full_name, years_exp } = sleeper_players.data[key];
                 return [
                     key,
                     {
                         position,
+                        fantasy_positions,
                         college,
                         number,
                         birth_date,

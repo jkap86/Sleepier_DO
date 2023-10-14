@@ -109,7 +109,10 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
 
                 const slot_options = player_ranks_filtered
                     .filter(x =>
-                        position_map[slot].includes(stateAllPlayers[x.id]?.position)
+                        (
+                            position_map[slot].includes(stateAllPlayers[x.id]?.position)
+                            || position_map[slot].some(p => stateAllPlayers[x.id]?.fantasy_positions?.includes(p))
+                        )
                         && (
                             !includeLocked || x.kickoff > new Date().getTime()
                         )
@@ -165,7 +168,9 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     const alt_hour = alt_gametime.getHours()
                     const alt_timeslot = parseFloat(alt_day + '.' + alt_hour)
 
-                    return alt_kickoff > (kickoff + 30 * 60 * 1000)
+                    return alt_kickoff > new Date().getTime()
+                        && kickoff > new Date().getTime()
+                        && alt_kickoff > (kickoff + 30 * 60 * 1000)
                         && position_map[slot].includes(stateAllPlayers[x]?.position)
                         && position_map[starting_slots[starter_index]].includes(stateAllPlayers[cur_id]?.position)
                         && position_map[league.roster_positions[starter_index]].length < position_map[slot].length
@@ -181,7 +186,9 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     const alt_hour = alt_gametime.getHours()
                     const alt_timeslot = parseFloat(alt_day + '.' + alt_hour)
 
-                    return (alt_kickoff + 30 * 60 * 1000) < kickoff
+                    return alt_kickoff > new Date().getTime()
+                        && kickoff > new Date().getTime()
+                        && (alt_kickoff + 30 * 60 * 1000) < kickoff
                         && position_map[slot].includes(stateAllPlayers[x]?.position)
                         && position_map[starting_slots[starter_index]].includes(stateAllPlayers[cur_id]?.position)
                         && position_map[league.roster_positions[starter_index]].length > position_map[slot].length
