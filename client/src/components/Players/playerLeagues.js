@@ -94,21 +94,22 @@ const PlayerLeagues = ({
             {
                 text: 'Rank',
                 colSpan: 1
-            },
-            {
-                text: 'PPG',
-                colSpan: 1
             }
         ]
     ]
 
     if (tab.secondary === 'Taken') {
         player_leagues_headers[0].push(
-            {
-                text: 'Manager',
-                colSpan: 2,
-                className: 'half'
-            }
+            ...[
+                {
+                    text: 'Manager',
+                    colSpan: 2
+                },
+                {
+                    text: 'Rank',
+                    colSpan: 1
+                }
+            ],
         )
     }
 
@@ -118,7 +119,11 @@ const PlayerLeagues = ({
                 []
 
     const player_leagues_body = leagues_display.map(lo => {
-        const player_score = getPlayerScore(trend_games, lo.scoring_settings)
+        const { wins, losses, ties } = lo.userRoster.settings
+        const winpct = wins + losses + ties > 0
+            ? (wins / (wins + losses + ties)).toFixed(4)
+            : '-'
+
         return {
             id: lo.league_id,
             list: [
@@ -147,6 +152,8 @@ const PlayerLeagues = ({
                         lo.userRoster?.rank / lo.rosters.length >= .75 ? 'red' :
                             null
                 },
+
+                /*
                 {
                     text: <span
                         className="player_score"
@@ -179,18 +186,36 @@ const PlayerLeagues = ({
                     </span>,
                     colSpan: 1
                 },
+                */
                 tab.secondary === 'Taken' ?
                     {
                         text: lo.lmRoster?.username || 'Orphan',
                         colSpan: 2,
-                        className: 'left end',
+                        className: 'left',
                         image: {
                             src: lo.lmRoster?.avatar,
                             alt: lo.lmRoster?.username,
                             type: 'user'
                         }
                     }
-                    : ''
+                    : '',
+                tab.secondary === 'Taken' ?
+                    {
+                        text: <p
+                            className={(lo.lmRoster?.rank / lo.rosters.length) < .5 ? 'green stat' :
+                                (lo.lmRoster?.rank / lo.rosters.length) > .5 ? 'red stat' :
+                                    'stat'}
+                            style={getTrendColor(- ((lo.lmRoster.rank / lo.rosters.length) - .5), .0025)
+                            }
+                        >
+                            {lo.lmRoster?.rank}
+                        </p>,
+                        colSpan: 1,
+                        className: lo.lmRoster?.rank / lo.rosters.length <= .25 ? 'green' :
+                            lo.lmRoster?.rank / lo.rosters.length >= .75 ? 'red' :
+                                null
+                    }
+                    : '',
 
             ],
             secondary_table: (

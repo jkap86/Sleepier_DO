@@ -244,7 +244,7 @@ export const category_dropdown = (statType, setStatType, leagues, statType1, sta
         <select className="hidden_behind click" value={statType} onChange={(e) => setStatType(e.target.value)}>
             {
                 [
-                    'SF Dynasty (KTC)', 'SF Dynasty (FC)', 'SF Redraft (FC)', '1QB Dynasty (KTC)', '1QB Dynasty (FC)', '1QB Redraft (FC)',
+                    'Record', 'Win %', 'SF Dynasty (KTC)', 'SF Dynasty (FC)', 'SF Redraft (FC)', '1QB Dynasty (KTC)', '1QB Dynasty (FC)', '1QB Redraft (FC)',
                     'SF Trend Dynasty (KTC)', 'SF Trend Dynasty (FC)', 'SF Trend Redraft (FC)',
                     '1QB Trend Dynasty (KTC)', '1QB Trend Dynasty (FC)', '1QB Trend Redraft (FC)'
                 ]

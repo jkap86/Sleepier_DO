@@ -57,15 +57,25 @@ const Players = () => {
                 colSpan: 5,
             },
             {
+                text: 'Record',
+                colSpan: 4
+            },
+            {
+                text: 'Win %',
+                colSpan: 4
+            },
+            /*
+            {
                 text: category_dropdown(statType1, (statType) => dispatch(setState({ statType1: statType }, 'PLAYERS')), leagues, statType1, statType2),
-                colSpan: 3,
+                colSpan: 4,
                 className: 'small'
             },
             {
                 text: category_dropdown(statType2, (statType) => dispatch(setState({ statType2: statType }, 'PLAYERS')), leagues, statType1, statType2),
-                colSpan: 3,
+                colSpan: 4,
                 className: 'small'
             },
+            
             {
                 text: 'GP',
                 colSpan: 2
@@ -74,6 +84,7 @@ const Players = () => {
                 text: 'PPG',
                 colSpan: 2,
             }
+            */
         ]
     ]
 
@@ -123,9 +134,36 @@ const Players = () => {
 
                         ) || []
 
-
                 }
+
+                const record_dict = player.leagues_owned.reduce((acc, cur) => {
+                    return {
+                        wins: acc.wins + (cur.userRoster.settings.wins || 0),
+                        losses: acc.losses + (cur.userRoster.settings.losses || 0),
+                        ties: acc.ties + (cur.userRoster.settings.ties || 0),
+                        fp: acc.fp + parseFloat((cur.userRoster.settings.fpts || 0) + '.' + (cur.userRoster.settings.fpts_decimal || 0)),
+                        fpa: acc.fp + parseFloat((cur.userRoster.settings.fpts_against || 0) + '.' + (cur.userRoster.settings.fpts_against_decimal || 0)),
+                    }
+                }, {
+                    wins: 0,
+                    losses: 0,
+                    ties: 0,
+                    fp: 0,
+                    fpa: 0
+                })
+
+                const record = `${record_dict.wins}-${record_dict.losses}` + (record_dict.ties > 0 ? `-${record_dict.ties}` : '')
+                const winpct = record_dict.wins + record_dict.losses + record_dict.ties > 0
+                    ? (record_dict.wins / (record_dict.wins + record_dict.losses + record_dict.ties)).toFixed(4)
+                    : '-'
+
                 switch (statType1) {
+                    case 'Record':
+                        stat_trend1 = record
+                        break;
+                    case 'Win %':
+                        stat_trend1 = winpct
+                        break;
                     case 'SF Dynasty (KTC)':
                         stat_trend1 = cur_value?.sf || '-'
                         break;
@@ -172,6 +210,12 @@ const Players = () => {
                 }
 
                 switch (statType2) {
+                    case 'Record':
+                        stat_trend2 = record
+                        break;
+                    case 'Win %':
+                        stat_trend2 = winpct
+                        break;
                     case 'SF Dynasty (KTC)':
                         stat_trend2 = cur_value?.sf || '-'
                         break;
@@ -255,25 +299,54 @@ const Players = () => {
                         },
                         {
                             text: <p
-                                className={(statType1.includes('Trend') && (stat_trend1 > 0 ? ' green stat' : stat_trend1 < 0 ? ' red stat' : 'stat')) || 'stat'}
-                                style={(statType1.includes('Trend') && getTrendColor(stat_trend1, 1.5)) || {}}
+                                className={
+                                    (
+                                        statType1.includes('Trend')
+                                            ? (stat_trend1 > 0 ? ' green stat' : stat_trend1 < 0 ? ' red stat' : 'stat')
+                                            : ['Record', 'Win %'].includes(statType1)
+                                                ? (winpct > 0.5 ? ' green stat' : winpct < 0.5 ? ' red stat' : 'stat')
+                                                : 'stat'
+                                    )
+                                }
+                                style={
+                                    statType1.includes('Trend')
+                                        ? getTrendColor(stat_trend1, 1.5)
+                                        : ['Record', 'Win %'].includes(statType1)
+                                            ? getTrendColor(winpct - .5, .0005)
+                                            : {}
+                                }
                             >
                                 {(statType1.includes('Trend') && stat_trend1 > 0 ? '+' : '') + stat_trend1}
                             </p>,
-                            colSpan: 3,
+                            colSpan: 4,
 
                         },
                         {
                             text: <p
-                                className={(statType2.includes('Trend') && (stat_trend2 > 0 ? 'green stat' : stat_trend2 < 0 ? 'red stat' : 'stat')) || 'stat'}
-                                style={(statType2.includes('Trend') && getTrendColor(stat_trend2, 1.5)) || {}}
+                                className={
+                                    (
+                                        statType2.includes('Trend')
+                                            ? (stat_trend2 > 0 ? ' green stat' : stat_trend2 < 0 ? ' red stat' : 'stat')
+                                            : ['Record', 'Win %'].includes(statType2)
+                                                ? (winpct > 0.5 ? ' green stat' : winpct < 0.5 ? ' red stat' : 'stat')
+                                                : 'stat'
+                                    )
+                                }
+                                style={
+                                    statType2.includes('Trend')
+                                        ? getTrendColor(stat_trend2, 1.5)
+                                        : ['Record', 'Win %'].includes(statType2)
+                                            ? getTrendColor(winpct - .5, .0005)
+                                            : {}
+                                }
                             >
                                 {(statType2.includes('Trend') && stat_trend2 > 0 ? '+' : '') + stat_trend2}
                             </p>,
-                            colSpan: 3,
+                            colSpan: 4,
                             className: "stat"
 
                         },
+                        /*
                         {
                             text: <p className="stat">{trend_games?.length || '-'}</p>,
                             colSpan: 2,
@@ -312,6 +385,7 @@ const Players = () => {
                             className: "stat"
 
                         }
+                        */
                     ],
                     secondary_table: (
                         <PlayerLeagues

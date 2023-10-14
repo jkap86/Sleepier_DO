@@ -331,17 +331,17 @@ const Leagues2View = ({
             active_roster
                 ? lineupType === 'Matchups'
                     ? <TableMain
-                        type={`${'secondary'} lineup`}
+                        type={`${type || 'secondary'} lineup`}
                         headers={matchups_header}
                         body={matchups_body}
                     />
                     : <Roster
-                        type={`${'secondary'} lineup`}
+                        type={`${type || 'secondary'} lineup`}
                         league={league}
                         roster={active_roster}
                     />
                 : <TableMain
-                    type={`${'tertiary'} lineup`}
+                    type={`${type || 'secondary'} lineup`}
                     headers={leagueInfo_headers}
                     body={leagueInfo_body}
                 />

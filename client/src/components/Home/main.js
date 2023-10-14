@@ -31,9 +31,9 @@ const Main = () => {
     } = useSelector(state => state.lineups);
     const { recordType: recordTypeLeagues } = useSelector(state => state.leagues);
 
-    if (leagues) {
-        console.log({ leagues })
-        console.log({ lineupChecks })
+    if (filteredData) {
+        console.log({ filteredData })
+
     }
 
     useEffect(() => {
