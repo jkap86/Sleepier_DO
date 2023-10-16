@@ -122,6 +122,11 @@ option {
   font-weight: 900;
 }
 
+.green.stat,
+.red.stat {
+  font-weight: unset;
+}
+
 .redb {
   background-color: red;
   background-image: none !important;

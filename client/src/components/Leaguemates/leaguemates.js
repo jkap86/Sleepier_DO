@@ -3,8 +3,7 @@ import { setState } from "../../redux/actions/state";
 import LeaguemateLeagues from './leaguemateLeagues'
 import { useSelector, useDispatch } from 'react-redux';
 import { filterLeagues } from '../../functions/filterLeagues';
-
-
+import { getTrendColor } from "../../functions/misc";
 
 const Leaguemates = () => {
     const dispatch = useDispatch();
@@ -71,6 +70,35 @@ const Leaguemates = () => {
         ?.sort((a, b) => filterLeagues(b.leagues, type1, type2)?.length - filterLeagues(a.leagues, type1, type2)?.length)
         ?.map(lm => {
             const lm_leagues = filterLeagues(lm.leagues, type1, type2)
+
+            const lm_wins = lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings?.wins, 0);
+            const lm_losses = lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings?.losses, 0);
+            const lm_ties = lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings.ties, 0);
+            const lm_winpct = lm_wins + lm_losses + lm_ties > 0 && (lm_wins / (lm_wins + lm_losses + lm_ties));
+            const lm_fpts = lm.leagues?.reduce(
+                (acc, cur) =>
+                    acc +
+                    parseFloat(
+                        cur.lmRoster.settings?.fpts +
+                        '.' +
+                        cur.lmRoster.settings?.fpts_decimal
+                    )
+                , 0);
+
+            const user_wins = lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.wins, 0);
+            const user_losses = lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.losses, 0);
+            const user_ties = lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.ties, 0);
+            const user_winpct = user_wins + user_losses + user_ties > 0 && (user_wins / (user_wins + user_losses + user_ties));
+            const user_fpts = lm.leagues?.reduce(
+                (acc, cur) =>
+                    acc +
+                    parseFloat(
+                        cur.userRoster.settings?.fpts +
+                        '.' +
+                        cur.userRoster.settings?.fpts_decimal
+                    )
+                , 0);
+
             return {
                 id: lm.user_id,
                 search: {
@@ -97,58 +125,64 @@ const Leaguemates = () => {
                         colSpan: 1
                     },
                     {
-                        text: (
-                            lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings?.wins, 0) +
-                            "-" +
-                            lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings?.losses, 0) +
-                            (
-                                lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings.ties, 0) > 0 ?
-                                    `-${lm_leagues?.reduce((acc, cur) => acc + cur.lmRoster.settings.ties, 0)}` :
-                                    ''
-                            )
-                        ),
-                        colSpan: 2,
-                        className: "red"
+                        text: <p
+                            className={
+                                lm_winpct > 0.5
+                                    ? 'green stat'
+                                    : lm_winpct < 0.5
+                                        ? ' red stat'
+                                        : 'stat'
+                            }
+                            style={getTrendColor(lm_winpct - .5, .0005)}
+                        >
+                            {lm_wins}-{lm_losses}{lm_ties > 0 ? `-${lm_ties}` : ''}
+                        </p>,
+                        colSpan: 2
                     },
                     {
-                        text: lm.leagues?.reduce(
-                            (acc, cur) =>
-                                acc +
-                                parseFloat(
-                                    cur.lmRoster.settings?.fpts +
-                                    '.' +
-                                    cur.lmRoster.settings?.fpts_decimal
-                                )
-                            , 0)?.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
-                        colSpan: 2,
-                        className: "red"
+                        text: <p
+                            className={
+                                lm_winpct > 0.5
+                                    ? 'green stat'
+                                    : lm_winpct < 0.5
+                                        ? ' red stat'
+                                        : 'stat'
+                            }
+                            style={getTrendColor(lm_winpct - .5, .0005)}
+                        >
+                            {lm_fpts?.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                        </p>,
+                        colSpan: 2
                     },
                     {
-                        text: (
-                            lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.wins, 0) +
-                            "-" +
-                            lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.losses, 0) +
-                            (
-                                lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.ties, 0) > 0 ?
-                                    `-${lm_leagues?.reduce((acc, cur) => acc + cur.userRoster.settings?.ties, 0)}` :
-                                    ''
-                            )
-                        ),
-                        colSpan: 2,
-                        className: "green"
+                        text: <p
+                            className={
+                                user_winpct > 0.5
+                                    ? 'green stat'
+                                    : user_winpct < 0.5
+                                        ? ' red stat'
+                                        : 'stat'
+                            }
+                            style={getTrendColor(user_winpct - .5, .0005)}
+                        >
+                            {user_wins}-{user_losses}{user_ties > 0 ? `-${user_ties}` : ''}
+                        </p>,
+                        colSpan: 2
                     },
                     {
-                        text: lm.leagues?.reduce(
-                            (acc, cur) =>
-                                acc +
-                                parseFloat(
-                                    cur.userRoster.settings?.fpts +
-                                    '.' +
-                                    cur.userRoster.settings?.fpts_decimal
-                                )
-                            , 0)?.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
-                        colSpan: 2,
-                        className: "green"
+                        text: <p
+                            className={
+                                user_winpct > 0.5
+                                    ? 'green stat'
+                                    : user_winpct < 0.5
+                                        ? ' red stat'
+                                        : 'stat'
+                            }
+                            style={getTrendColor(user_winpct - .5, .0005)}
+                        >
+                            {user_fpts?.toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                        </p>,
+                        colSpan: 2
                     }
                 ],
                 secondary_table: (

@@ -552,20 +552,24 @@ const Lineups2View = ({
                 </div>
             </div>
             <div className="half">
-                <TableMain
-                    type={'secondary lineup'}
-                    headers={getGroupHeader('Bench')}
-                    body={getGroupBody(bench)}
-                    page={page2_bench}
-                    setPage={(value) => dispatch(setState({ page2_bench: value }, 'LINEUPS'))}
-                />
-                <TableMain
-                    type={'secondary subs'}
-                    headers={getGroupHeader('Opp Bench')}
-                    body={getGroupBody(bench_opp)}
-                    page={page2_bench_opp}
-                    setPage={(value) => dispatch(setState({ page2_bench_opp: value }, 'LINEUPS'))}
-                />
+                <div>
+                    <TableMain
+                        type={'secondary lineup'}
+                        headers={getGroupHeader('Bench')}
+                        body={getGroupBody(bench)}
+                        page={page2_bench}
+                        setPage={(value) => dispatch(setState({ page2_bench: value }, 'LINEUPS'))}
+                    />
+                </div>
+                <div>
+                    <TableMain
+                        type={'secondary subs'}
+                        headers={getGroupHeader('Opp Bench')}
+                        body={getGroupBody(bench_opp)}
+                        page={page2_bench_opp}
+                        setPage={(value) => dispatch(setState({ page2_bench_opp: value }, 'LINEUPS'))}
+                    />
+                </div>
             </div>
         </>
 }

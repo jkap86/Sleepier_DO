@@ -2,7 +2,7 @@ import TableMain from "../Home/tableMain";
 import { useMemo, useRef, useEffect } from "react";
 //  import LeagueInfo from "../Leagues/leagueInfo";
 import { useSelector, useDispatch } from 'react-redux';
-
+import { filterLeagues } from '../../functions/filterLeagues';
 import Leagues2Main from "../Leagues/leagues2Main";
 import { setState } from "../..//redux/actions/state";
 import PlayerModal from "./playerModal";
@@ -118,7 +118,7 @@ const PlayerLeagues = ({
             tab.secondary === 'Available' ? leagues_available :
                 []
 
-    const player_leagues_body = leagues_display.map(lo => {
+    const player_leagues_body = filterLeagues(leagues_display, type1, type2).map(lo => {
         const { wins, losses, ties } = lo.userRoster.settings
         const winpct = wins + losses + ties > 0
             ? (wins / (wins + losses + ties)).toFixed(4)
