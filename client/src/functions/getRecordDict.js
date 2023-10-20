@@ -380,13 +380,14 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     ? 1
                     : 0
 
-                const median_points1 = standings[standings?.length / 2][`proj_score_${recordType}`]
-                const median_points2 = standings[(standings?.length / 2) - 1][`proj_score_${recordType}`]
+                let proj_median = '-'
 
-                const proj_median = league.settings.league_average_match === 1
-                    ? (median_points1 + median_points2) / 2
-                    : '-'
+                if (league.settings.league_average_match === 1) {
+                    const median_points1 = standings[standings?.length / 2][`proj_score_${recordType}`]
+                    const median_points2 = standings[(standings?.length / 2) - 1][`proj_score_${recordType}`]
 
+                    proj_median = (median_points1 + median_points2) / 2
+                }
                 return lineupChecks_week[league.league_id] = {
                     name: league.name,
                     avatar: league.avatar,
