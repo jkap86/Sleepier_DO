@@ -386,6 +386,9 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     const median_points1 = standings[standings?.length / 2]?.[`proj_score_${recordType}`]
                     const median_points2 = standings[(standings?.length / 2) - 1]?.[`proj_score_${recordType}`]
 
+                    if (!(median_points1 && median_points2)) {
+                        console.log("UNDEFINED - " + league.name)
+                    }
                     proj_median = median_points1 && median_points2 && ((median_points1 + median_points2) / 2)
                 }
                 return lineupChecks_week[league.league_id] = {
