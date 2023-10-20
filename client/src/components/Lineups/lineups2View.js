@@ -254,7 +254,7 @@ const Lineups2View = ({
                                 className: color
                             },
                             {
-                                text: matchup_user?.players_points[so].toFixed(1),
+                                text: matchup_user?.players_points[so].toFixed(1) || '-',
                                 colSpan: 4,
                                 className: color
                             }
@@ -378,7 +378,7 @@ const Lineups2View = ({
                                 className: 'green'
                             },
                             {
-                                text: matchup_user?.players_points[ol.player] && matchup_user?.players_points[ol.player].toFixed(1) || ol.player,
+                                text: matchup_user?.players_points[ol.player] && matchup_user?.players_points[ol.player].toFixed(1) || '-',
                                 colSpan: 4,
                                 className: 'green'
                             }

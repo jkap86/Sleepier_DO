@@ -13,9 +13,9 @@ const LineupsMain = () => {
 
 
     useEffect(() => {
-        if (week < state.week) {
-            dispatch(setState({ recordType: 'actual' }, 'LINEUPS'));
-        }
+
+        dispatch(setState({ recordType: week < state.week ? 'actual' : 'optimal' }, 'LINEUPS'));
+
     }, [week, state.week, dispatch])
 
     useEffect(() => {

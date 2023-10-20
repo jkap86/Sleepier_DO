@@ -46,9 +46,13 @@ const LineupsView = () => {
             'Optimal For',
             'Optimal Against',
             'Bench Points',
-            'Total Points'
+            'Total Points',
+            'Median'
         ]
         : [
+            'Proj FP',
+            'Proj FPA',
+            'Proj Median',
             'Suboptimal',
             'Early/Late Flex',
             'Non QB in SF',
@@ -181,15 +185,18 @@ const LineupsView = () => {
             {
                 text: 'Player',
                 colSpan: 3,
-                rowSpan: 2
+                rowSpan: 2,
+                className: 'half'
             },
             {
                 text: username,
-                colSpan: 2
+                colSpan: 2,
+                className: 'half'
             },
             {
                 text: 'Opp',
-                colSpan: 2
+                colSpan: 2,
+                className: 'half'
             }
         ],
         [
@@ -197,28 +204,47 @@ const LineupsView = () => {
                 text: 'Start',
                 colSpan: 1,
                 onClick: () => dispatch(setState({ sortBy: 'start' }, 'LINEUPS')),
+                className: 'half'
             },
             {
                 text: 'Bench',
                 colSpan: 1,
-                onClick: () => dispatch(setState({ sortBy: 'bench' }, 'LINEUPS'))
+                onClick: () => dispatch(setState({ sortBy: 'bench' }, 'LINEUPS')),
+                className: 'half'
             },
             {
                 text: 'Start',
                 colSpan: 1,
-                onClick: () => dispatch(setState({ sortBy: 'start_opp' }, 'LINEUPS'))
+                onClick: () => dispatch(setState({ sortBy: 'start_opp' }, 'LINEUPS')),
+                className: 'half'
             },
             {
                 text: 'Bench',
                 colSpan: 1,
-                onClick: () => dispatch(setState({ sortBy: 'bench_opp' }, 'LINEUPS'))
+                onClick: () => dispatch(setState({ sortBy: 'bench_opp' }, 'LINEUPS')),
+                className: 'half'
             }
         ]
     ]
 
-    const getColumnValue = (header, matchup, lineup_check, league, opt_proj, act_proj) => {
+    const getColumnValue = (header, matchup, lineup_check, league, opt_proj, act_proj, opp_opt_proj, proj_median) => {
         if (league.settings.status === 'in_season') {
             switch (header) {
+                case 'Proj FP':
+                    return {
+                        text: opt_proj.toFixed(2),
+                        colSpan: 2
+                    }
+                case 'Proj FPA':
+                    return {
+                        text: opp_opt_proj.toFixed(2),
+                        colSpan: 2
+                    }
+                case 'Proj Median':
+                    return {
+                        text: parseInt(proj_median) && proj_median.toFixed(2) || '-',
+                        colSpan: 2
+                    }
                 case 'Suboptimal':
                     return {
                         text: !matchup?.matchup_id || !lineup_check ? '-' : lineup_check.filter(x => x.notInOptimal).length > 0 ?
@@ -397,7 +423,7 @@ const LineupsView = () => {
         }
     }
 
-    const getColumnValuePrev = (column, league_id, matchup_user, matchup_opp) => {
+    const getColumnValuePrev = (column, league_id, matchup_user, matchup_opp, act_median) => {
         const proj_score_user_actual = lineupChecks[week]?.[league_id]?.lc_user?.proj_score_actual;
         const proj_score_opp_actual = lineupChecks[week]?.[league_id]?.lc_opp?.proj_score_actual;
 
@@ -419,6 +445,11 @@ const LineupsView = () => {
                     text: matchup_opp?.points?.toFixed(1),
                     colSpan: 2
                 };
+            case 'Median':
+                return {
+                    text: parseInt(act_median) && act_median.toFixed(2) || '-',
+                    colSpan: 2
+                }
             case 'Optimal For':
                 return {
                     text: proj_score_user_actual?.toFixed(1),
@@ -473,6 +504,8 @@ const LineupsView = () => {
                     ...lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_projections
                 }
 
+                const proj_median = lineupChecks[week]?.[hash]?.[league.league_id]?.proj_median
+
                 return {
                     id: league.league_id,
                     search: {
@@ -507,7 +540,10 @@ const LineupsView = () => {
                                 }
                                 {
                                     lineupChecks[week]?.[hash]?.[league.league_id]?.median_win > 0
-                                    && <i className="fa-solid fa-trophy"></i>
+                                        ? <i className="fa-solid fa-trophy"></i>
+                                        : lineupChecks[week]?.[hash]?.[league.league_id]?.median_loss > 0
+                                            ? <i className="fa-solid fa-poop"></i>
+                                            : ''
                                 }
                             </>,
                             colSpan: 1,
@@ -520,16 +556,16 @@ const LineupsView = () => {
                                 : '-',
                         },
                         {
-                            ...getColumnValue(column1, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual)
+                            ...getColumnValue(column1, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
                         },
                         {
-                            ...getColumnValue(column2, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual)
+                            ...getColumnValue(column2, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
                         },
                         {
-                            ...getColumnValue(column3, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual)
+                            ...getColumnValue(column3, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
                         },
                         {
-                            ...getColumnValue(column4, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual)
+                            ...getColumnValue(column4, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
                         }
                     ],
                     secondary_table: <Lineups2Main
@@ -556,6 +592,8 @@ const LineupsView = () => {
                     ...lineupChecks[week]?.[league.league_id]?.lc_user?.players_projections,
                     ...lineupChecks[week]?.[league.league_id]?.lc_opp?.players_projections
                 }
+
+                const act_median = lc_league?.act_median
 
                 return {
                     id: league.league_id,
@@ -610,16 +648,16 @@ const LineupsView = () => {
                                         : '-'
                         },
                         {
-                            ...getColumnValuePrev(column1_prev, league.league_id, matchup_user, matchup_opp)
+                            ...getColumnValuePrev(column1_prev, league.league_id, matchup_user, matchup_opp, act_median)
                         },
                         {
-                            ...getColumnValuePrev(column2_prev, league.league_id, matchup_user, matchup_opp)
+                            ...getColumnValuePrev(column2_prev, league.league_id, matchup_user, matchup_opp, act_median)
                         },
                         {
-                            ...getColumnValuePrev(column3_prev, league.league_id, matchup_user, matchup_opp)
+                            ...getColumnValuePrev(column3_prev, league.league_id, matchup_user, matchup_opp, act_median)
                         },
                         {
-                            ...getColumnValuePrev(column4_prev, league.league_id, matchup_user, matchup_opp)
+                            ...getColumnValuePrev(column4_prev, league.league_id, matchup_user, matchup_opp, act_median)
                         }
                     ],
                     secondary_table: <Lineups2Main
@@ -805,7 +843,7 @@ const LineupsView = () => {
                                     className={'record_type'}
                                     value={recordType}
                                     onChange={(e) => dispatch(setState({ recordType: e.target.value }, 'LINEUPS'))}
-                                    disabled={week < state.week}
+                                    disabled={true}
                                 >
                                     <option value={'actual'}>Actual Proj</option>
                                     <option value={'optimal'}>Optimal Proj</option>

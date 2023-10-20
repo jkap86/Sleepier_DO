@@ -96,7 +96,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                                 : matchup.starters?.includes(player_id)
                                     ? 999
                                     : 1000
-                        : getPlayerScore([projections[player_id]], league.scoring_settings, true) || 0
+                        : ((getPlayerScore([projections[player_id]], league.scoring_settings, true) || 0) * (parseInt(playing?.gameSecondsRemaining || 0) / 3600))
+                        + (matchup?.players_points[player_id] || 0)
                 })
             })
 
@@ -114,7 +115,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                             || position_map[slot].some(p => stateAllPlayers[x.id]?.fantasy_positions?.includes(p))
                         )
                         && (
-                            !includeLocked || x.kickoff > new Date().getTime()
+                            league.settings.best_ball === 1 || !includeLocked || x.kickoff > new Date().getTime()
                         )
                     )
                     .sort(
@@ -123,7 +124,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
 
                 let optimal_player;
 
-                if (includeLocked && kickoff < new Date().getTime()) {
+                if (includeLocked && kickoff < new Date().getTime() && !league.settings.best_ball === 1) {
 
                     optimal_player = matchup.starters?.[index]
                 } else {
@@ -271,16 +272,24 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
 
                 let median_win = 0;
                 let median_loss = 0;
+                let act_median = '-'
 
                 if (
                     league.settings.league_average_match === 1
                     && week >= league.settings.start_week
                 ) {
-                    const pts_rank = league[`matchups_${week}`]
+                    const standings = league[`matchups_${week}`]
                         ?.sort((a, b) => b.points - a.points)
+
+                    const pts_rank = standings
                         ?.findIndex(m => {
                             return m.roster_id === league.userRoster.roster_id
                         })
+
+                    act_median = (
+                        standings[standings.length / 2].points
+                        + standings[(standings.length / 2) - 1].points
+                    ) / 2
 
                     if (pts_rank + 1 <= (league.rosters.length / 2)) {
                         median_win++
@@ -299,7 +308,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     loss: loss,
                     tie: tie,
                     median_win: median_win,
-                    median_loss: median_loss
+                    median_loss: median_loss,
+                    act_median: act_median
                 }
             })
 
@@ -370,6 +380,13 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     ? 1
                     : 0
 
+                const median_points1 = standings[standings?.length / 2][`proj_score_${recordType}`]
+                const median_points2 = standings[(standings?.length / 2) - 1][`proj_score_${recordType}`]
+
+                const proj_median = league.settings.league_average_match === 1
+                    ? (median_points1 + median_points2) / 2
+                    : '-'
+
                 return lineupChecks_week[league.league_id] = {
                     name: league.name,
                     avatar: league.avatar,
@@ -380,6 +397,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     tie: tie,
                     median_win: median_win,
                     median_loss: median_loss,
+                    proj_median: proj_median,
                     standings: Object.fromEntries(
                         standings.map(s => {
                             const opp = standings.find(s2 => s2.matchup.matchup_id === s.matchup.matchup_id && s2.matchup.roster_id !== s.matchup.roster_id)

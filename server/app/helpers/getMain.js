@@ -50,24 +50,79 @@ const getState = async (app) => {
 }
 
 const getSchedule = async () => {
+    console.log('Updating Schedule on ' + new Date())
+    const schedule_json = fs.readFileSync('./schedule.json', 'utf-8');
+
     let schedule;
 
-
-    const nflschedule = await axios.get(`https://api.myfantasyleague.com/2023/export?TYPE=nflSchedule&W=ALL&JSON=1`)
-
+    let nflschedule
+    try {
+        nflschedule = await axios.get(`https://api.myfantasyleague.com/2023/export?TYPE=nflSchedule&W=ALL&JSON=1`)
+    } catch (err) {
+        console.log(err.message)
+    }
     schedule = Object.fromEntries(
         nflschedule.data.fullNflSchedule.nflSchedule
             .map(matchups_week => {
                 return [matchups_week.week, matchups_week.matchup]
             })
+
     )
 
+
     fs.writeFileSync('./schedule.json', JSON.stringify(schedule))
+
+    let delay;
+
+    const games_in_progress = Object.keys(schedule)
+        .find(
+            week => schedule[week]
+                && schedule[week]
+                    .find(
+                        g => parseInt(g.gameSecondsRemaining) > 0
+                            && parseInt(g.gameSecondsRemaining) < 3600
+                    )
+        )
+
+    if (games_in_progress) {
+        const min = new Date().getMinutes()
+
+        delay = (min % 15) * 60 * 1000
+    } else {
+
+        const next_kickoff = Math.min(...Object.keys(schedule)
+            .filter(week => schedule[week])
+            .flatMap(week => {
+                return schedule[week]
+                    ?.filter(g => parseInt(g.kickoff * 1000) > new Date().getTime())
+                    ?.map(g => parseInt(g.kickoff * 1000))
+            }))
+
+        console.log({ next_kickoff })
+
+        delay = next_kickoff - new Date().getTime()
+
+    }
+
+    console.log({ delay })
+    setTimeout(() => {
+        getSchedule()
+    }, delay)
+
+}
+
+const getScheduleWeek = async (week) => {
+    let schedule;
+
+    const nflschedule = await axios.get(`https://api.myfantasyleague.com/2023/export?TYPE=nflSchedule&W=${week}&JSON=1`)
+
+    const kickoffs = Math.min(...nflschedule.data.nflSchedule.matchup.map(x => parseInt(x.kickoff)))
 
 }
 
 module.exports = {
     getAllPlayers: getAllPlayers,
     getState: getState,
-    getSchedule: getSchedule
+    getSchedule: getSchedule,
+    getScheduleWeek: getScheduleWeek
 }
