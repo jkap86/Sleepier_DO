@@ -36,10 +36,15 @@ export const fetchMatchups = () => {
                                     key_week < league.settings.playoff_week_start
                                     || league.settings.playoff_week_start === 0
                                 ) && (
-                                    key_week > league.settings.start_week
+                                    key_week >= league.settings.start_week
                                 )
                             ) {
-                                if (key_week + 1 === display_week) {
+                                if (
+                                    key_week + 1 < display_week
+                                    && league[key]?.find(m => m.players?.length > 0 && m.points === 0)
+                                ) {
+                                    league_matchups_to_update.push(key)
+                                } else if (key_week + 1 === display_week) {
                                     if ((
                                         league.settings.league_average_match === 0
                                         && games < display_week - start_week
