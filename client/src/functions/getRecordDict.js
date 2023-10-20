@@ -96,10 +96,9 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                                 : matchup.starters?.includes(player_id)
                                     ? 999
                                     : 1000
-                        : !includeLocked
-                            ? ((getPlayerScore([projections[player_id]], league.scoring_settings, true) || 0) * (parseInt(playing?.gameSecondsRemaining || 0) / 3600))
-                            + (matchup?.players_points[player_id] || 0)
-                            : getPlayerScore([projections[player_id]], league.scoring_settings, true)
+                        : ((getPlayerScore([projections[player_id]], league.scoring_settings, true) || 0) * (parseInt(playing?.gameSecondsRemaining || 0) / 3600))
+                        + (matchup?.players_points[player_id] || 0)
+
                 })
             })
 
@@ -117,7 +116,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                             || position_map[slot].some(p => stateAllPlayers[x.id]?.fantasy_positions?.includes(p))
                         )
                         && (
-                            league.settings.best_ball === 1 || includeLocked || x.kickoff > new Date().getTime()
+                            !includeLocked || x.kickoff > new Date().getTime() || league.settings.best_ball === 1
                         )
                     )
                     .sort(
@@ -126,7 +125,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
 
                 let optimal_player;
 
-                if (!(includeLocked && kickoff < new Date().getTime()) || !league.settings.best_ball === 1) {
+                if ((includeLocked && league.settings.best_ball !== 1 && kickoff < new Date().getTime())) {
 
                     optimal_player = matchup.starters?.[index]
                 } else {
