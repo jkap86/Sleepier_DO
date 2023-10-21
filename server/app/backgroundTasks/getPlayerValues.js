@@ -81,9 +81,11 @@ module.exports = async (app) => {
 
         console.log(`Update Complete`)
     }
+    await getDailyValues()
 
-
-    //  await getDailyValues()
+    setInterval(async () => {
+        await getDailyValues()
+    }, 60 * 60 * 1000)
 
     const gethistoricalPicks = async () => {
         const stateAllPlayers = fs.readFileSync('./allplayers.json', 'utf-8')
@@ -155,7 +157,7 @@ module.exports = async (app) => {
     }
 
     setInterval(async () => {
-        await gethistoricalPicks()
+        // await gethistoricalPicks()
     }, 60 * 60 * 1000)
 
 }
