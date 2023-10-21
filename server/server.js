@@ -55,6 +55,7 @@ function start() {
         require('./app/backgroundTasks/dailyUpdate')(app);
         require('./app/backgroundTasks/findMostLeagus')(app)
         require('./app/backgroundTasks/getProjections')(app)
+        //  require('./app/backgroundTasks/getPlayerValues')(app)
     });
 
 }

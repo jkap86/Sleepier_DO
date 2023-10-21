@@ -146,7 +146,7 @@ const Roster = ({
                         {
                             text: previous
                                 ? players_projections[player_id]?.toFixed(1)
-                                : games.toString(),
+                                : games?.toString(),
                             colSpan: previous ? 4 : 3
                         },
                         {

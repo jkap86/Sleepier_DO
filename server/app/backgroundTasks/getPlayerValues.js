@@ -4,59 +4,22 @@ const axios = require('../api/axiosInstance');
 
 module.exports = async (app) => {
     const matchPlayer = (player, stateAllPlayers) => {
+        const ktc_player_ids = require('../../ktc_player_ids.json');
 
-        const matchTeam = (team) => {
-            const team_abbrev = {
-                SFO: 'SF',
-                JAC: 'JAX',
-                KCC: 'KC',
-                TBB: 'TB',
-                GBP: 'GB',
-                NEP: 'NE',
-                LVR: 'LV',
-                NOS: 'NO'
-            }
-            return team_abbrev[team] || team
-        }
+        const sleeper_id = ktc_player_ids.find(x => parseInt(x.ktc_id) === player.playerID)?.sleeper_id
 
-        if (player.position === 'RDP') {
-            return player.playerName.slice(0, -2)
-        } else {
+        return sleeper_id
+    }
 
-            const players_to_search = Object.keys(stateAllPlayers || {})
-                .map(player_id => {
-                    let match_score = 0
+    const getUTCDate = (date) => {
+        // Extract year, month, and day
+        let yy = date.getUTCFullYear().toString().slice(-2);  // Get last 2 digits of year
+        let mm = String(date.getUTCMonth() + 1).padStart(2, '0');  // Month is 0-indexed, so +1
+        let dd = String(date.getUTCDate()).padStart(2, '0');
 
-                    if (stateAllPlayers[player_id]?.active === true
-                        && stateAllPlayers[player_id]?.position === player.position) {
-                        match_score += 1
-                    }
-                    if (stateAllPlayers[player_id]?.college === player.college) {
-                        match_score += 1
-                    }
-                    if (stateAllPlayers[player_id]?.number === player.number) {
-                        match_score += 1
-                    }
-                    if ((stateAllPlayers[player_id]?.team || 'FA') === matchTeam(player.team)) {
-                        match_score += 1
-                    }
-                    if (stateAllPlayers[player_id]?.years_exp === player.seasonsExperience || 0) {
-                        match_score += 1
-                    }
-                    if (player.playerName?.replace('III', '').replace('II', '').replace('Jr', '').trim().toLowerCase().replace(/[^a-z]/g, "") === stateAllPlayers[player_id]?.search_full_name?.trim()) {
-                        match_score += 5
-                    }
-
-                    return {
-                        player_id: player_id,
-                        match_score: match_score
-                    }
-                })
-                .sort((a, b) => b.match_score - a.match_score)
-
-            console.log(players_to_search[0])
-            return players_to_search[0].player_id
-        }
+        // Form the "mm-dd-yy" format
+        let formattedDate = `${mm}-${dd}-${yy}`;
+        return formattedDate;
 
     }
 
@@ -68,126 +31,76 @@ module.exports = async (app) => {
 
         let ktc;
         try {
-            console.log('getting ktc')
             ktc = await axios.post('https://keeptradecut.com/dynasty-rankings/histories')
-            console.log('ktc complete')
         } catch (err) {
             console.log(err)
         }
 
+        const values_all = {}
 
-        let fc_sf_dynasty
-        try {
-            fc_sf_dynasty = await axios.get(`https://api.fantasycalc.com/values/current?isDynasty=true&numQbs=2&numTeams=12&ppr=1`)
-            console.log('fc complete')
-        } catch (err) {
-            console.log(err)
-        }
-
-        let fc_sf_redraft
-        try {
-            fc_sf_redraft = await axios.get(`https://api.fantasycalc.com/values/current?isDynasty=false&numQbs=2&numTeams=12&ppr=1`)
-        } catch (err) {
-            console.log(err)
-        }
-
-        let fc_oneqb_dynasty
-        try {
-            fc_oneqb_dynasty = await axios.get(`https://api.fantasycalc.com/values/current?isDynasty=true&numQbs=1&numTeams=12&ppr=1`)
-        } catch (err) {
-            console.log(err)
-        }
-
-        let fc_oneqb_redraft
-        try {
-            fc_oneqb_redraft = await axios.get(`https://api.fantasycalc.com/values/current?isDynasty=false&numQbs=1&numTeams=12&ppr=1`)
-            console.log('fc complete')
-        } catch (err) {
-            console.log(err)
-        }
-
-        const daily_values = {}
-
-        ktc.data.slice(0, 50).forEach(ktc_player => {
-
+        ktc.data.forEach(ktc_player => {
             const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
-            console.log({ sleeper_id })
-            const oneqb_dynasty_fc = fc_oneqb_dynasty.data
-                .find(p => p.player.sleeperId === sleeper_id)
-                ?.value
 
-            const sf_dynasty_fc = fc_sf_dynasty.data
-                .find(p => p.player.sleeperId === sleeper_id)
-                ?.value
+            if (sleeper_id) {
+                ktc_player.superflexValueHistory
+                    .forEach(date_values => {
+                        const date = getUTCDate(new Date(date_values.d))
 
-            const oneqb_redraft_fc = fc_oneqb_redraft.data
-                .find(p => p.player.sleeperId === sleeper_id)
-                ?.value
+                        if (!values_all[date]) {
+                            values_all[date] = {}
+                        }
+                        if (!values_all[date].sf) {
+                            values_all[date].sf = {}
+                        }
 
-            const sf_redraft_fc = fc_sf_redraft.data
-                .find(p => p.player.sleeperId === sleeper_id)
-                ?.value
+                        values_all[date].sf[sleeper_id] = date_values.v
+                    })
 
-            daily_values[sleeper_id] = {
-                oneqb: ktc_player.oneQBValues?.value,
-                sf: ktc_player.superflexValues?.value,
-                oneqb_dynasty_fc: oneqb_dynasty_fc,
-                sf_dynasty_fc: sf_dynasty_fc,
-                oneqb_redraft_fc: oneqb_redraft_fc,
-                sf_redraft_fc: sf_redraft_fc
+
+                ktc_player.oneQBValueHistory
+                    .forEach(date_values => {
+                        const date = getUTCDate(new Date(date_values.d))
+
+                        if (!values_all[date]) {
+                            values_all[date] = {}
+                        }
+                        if (!values_all[date].oneqb) {
+                            values_all[date].oneqb = {}
+                        }
+
+                        values_all[date].oneqb[sleeper_id] = date_values.v
+                    })
+
             }
         })
 
-        Array.from(
-            new Set(
-                ...fc_oneqb_dynasty.data.map(p => p.player.sleeperId),
-                ...fc_oneqb_redraft.data.map(p => p.player.sleeperId),
-                ...fc_sf_dynasty.data.map(p => p.player.sleeperId),
-                ...fc_sf_redraft.data.map(p => p.player.sleeperId)
-            )
-        )
-            .filter(player_id =>
-                !Object.keys(daily_values).includes(player_id)
-            )
-            .forEach(player_id => {
-                const oneqb_dynasty_fc = fc_oneqb_dynasty.data
-                    .find(p => p.player.sleeperId === player_id)
-                    ?.value
+        const data = []
 
-                const sf_dynasty_fc = fc_sf_dynasty.data
-                    .find(p => p.player.sleeperId === player_id)
-                    ?.value
-
-                const oneqb_redraft_fc = fc_oneqb_redraft.data
-                    .find(p => p.player.sleeperId === player_id)
-                    ?.value
-
-                const sf_redraft_fc = fc_sf_redraft.data
-                    .find(p => p.player.sleeperId === player_id)
-                    ?.value
-
-                daily_values[player_id] = {
-                    oneqb_dynasty_fc: oneqb_dynasty_fc,
-                    sf_dynasty_fc: sf_dynasty_fc,
-                    oneqb_redraft_fc: oneqb_redraft_fc,
-                    sf_redraft_fc: sf_redraft_fc
-                }
+        Object.keys(values_all)
+            .forEach(date => {
+                Object.keys(values_all[date])
+                    .forEach(type => {
+                        Object.keys(values_all[date][type])
+                            .forEach(player_id => {
+                                data.push({
+                                    date: date,
+                                    type: type,
+                                    player_id: player_id,
+                                    value: values_all[date][type][player_id]
+                                })
+                            })
+                    })
             })
 
 
         try {
-            fs.writeFileSync('./playervalues.json', JSON.stringify(daily_values))
+            fs.writeFileSync('./playervalues.json', JSON.stringify(data))
         } catch (error) {
             console.log(error)
         }
 
         console.log(`Update Complete`)
-
     }
 
-    const breakoutByDate = () => {
-        const ktcplayers = require('../../ktcplayers.json');
-
-
-    }
+    await getDailyValues()
 }
