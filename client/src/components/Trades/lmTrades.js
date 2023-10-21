@@ -3,9 +3,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import TableMain from '../Home/tableMain';
 import Trade from './trade';
 import TradeInfo from './tradeInfo';
-import { fetchLmTrades, fetchFilteredLmTrades } from '../../redux/actions/fetchUser';
+import { fetchLmTrades, fetchFilteredLmTrades, fetchPV } from '../../redux/actions/fetchUser';
 import { setState } from '../../redux/actions/state';
 import Search from '../Home/search';
+import axios from 'axios';
+
 
 const LmTrades = ({
     trades_headers,
@@ -24,6 +26,19 @@ const LmTrades = ({
             trades.lmTrades.searches?.find(s => s.player === trades.lmTrades.searched_player.id && s.manager === trades.lmTrades.searched_manager.id)?.trades
             || []
         )
+
+
+
+    useEffect(() => {
+        const player_ids = tradesDisplay
+            .sort((a, b) => parseInt(b.status_updated) - parseInt(a.status_updated))
+            .slice((trades.lmTrades.page - 1) * 25, ((trades.lmTrades.page - 1) * 25) + 25)
+            .flatMap(t => Object.keys(t.adds))
+
+        dispatch(fetchPV(player_ids))
+    }, [tradesDisplay, trades.lmTrades.page, dispatch])
+
+
 
     console.log(trades.lmTrades.searches)
 

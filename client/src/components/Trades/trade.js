@@ -1,15 +1,32 @@
 import TableMain from "../Home/tableMain";
 import { useSelector } from "react-redux";
 import { avatar, getTrendColor } from '../../functions/misc';
+import { getUTCDate } from '../../functions/getUTCDate';
 
 const Trade = ({
     trade
 }) => {
-    const { state: stateState, allplayers } = useSelector(state => state.main)
+    const { state: stateState, allplayers, values } = useSelector(state => state.main)
 
-    const stateDynastyRankings = []
+    const date = getUTCDate(new Date())
 
-    const eastern_time = new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]
+    const trade_date = getUTCDate(new Date(parseInt(trade.status_updated)))
+
+    const type = trade['league.roster_positions']
+        .filter(p => p === 'QB' || p === 'SUPER_FLEX')
+        .length > 1
+        ? 'sf'
+        : 'oneqb'
+
+    console.log({ type })
+
+    const getTradeValue = (player_id, date, type) => {
+        return values.find(value => (value.player_id === player_id || value.player_id.includes(player_id)) && value.date === date && type === 'sf')?.value
+    }
+
+    const getKtcPickName = (pick) => {
+        return `${pick.season} ${pick.order <= 4 ? 'Early' : pick.order >= 9 ? 'Late' : 'Mid'} ${pick.round}`
+    }
 
     return <TableMain
         type={'trade_summary'}
@@ -39,41 +56,27 @@ const Trade = ({
                 ...trade.managers.map(rid => {
                     const roster = trade.rosters?.find(r => r.user_id === rid)
 
-                    const cur_values = stateDynastyRankings
-                        .find(x => x.date === new Date(eastern_time).toISOString().split('T')[0])?.values || {}
+                    const trade_value_players = Object.keys(trade.adds || {})
+                        .filter(a => trade.adds[a] === roster?.user_id)
+                        .reduce((acc, cur) => acc + getTradeValue(cur, trade_date, type), 0)
 
+                    const trade_value_picks = trade.draft_picks
+                        .filter(p => p.owner_id === roster?.roster_id)
+                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), trade_date, type), 0)
 
+                    const trade_value_total = trade_value_players + trade_value_picks
 
-                    const trans_values = stateDynastyRankings
-                        .find(x => x.date === new Date(parseInt(trade.status_updated) - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0])?.values
+                    const current_value_players = Object.keys(trade.adds || {})
+                        .filter(a => trade.adds[a] === roster?.user_id)
+                        .reduce((acc, cur) => acc + getTradeValue(cur, date, type), 0)
 
+                    const current_value_picks = trade.draft_picks
+                        .filter(p => p.owner_id === roster?.roster_id)
+                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), date, type), 0)
 
-                    const superflex = trade['league.roster_positions']?.filter(p => p === 'QB' || p === 'SUPER_FLEX').length > 1 ? true : false
-                    const trans_value = Object.keys(trade.adds || {}).filter(a => trade.adds[a] === roster?.user_id)
-                        .reduce((acc, cur) =>
-                            acc + parseInt(trans_values?.[cur]?.[superflex ? 'sf' : 'oneqb'] || 0)
-                            , 0)
-                        +
-                        trade.draft_picks.filter(p => p.owner_id === roster?.roster_id)
-                            .reduce((acc, cur) =>
-                                acc + (trans_values && parseInt(trans_values?.[
-                                    `${cur.season} ${`${cur.order <= 4 ? 'Early' : cur.order >= 9 ? 'Late' : 'Mid'}`} ${cur.round}`
-                                ]?.[superflex ? 'sf' : 'oneqb'] || 0)) || 0
-                                , 0)
+                    const current_value_total = current_value_players + current_value_picks
 
-
-
-
-                    const cur_value = Object.keys(trade.adds || {}).filter(a => trade.adds[a] === roster?.user_id)
-                        .reduce((acc, cur) => acc + parseInt(cur_values?.[cur]?.[superflex ? 'sf' : 'oneqb'] || 0), 0)
-                        +
-                        trade.draft_picks.filter(p => p.owner_id === roster?.roster_id)
-                            .reduce((acc, cur) =>
-                                acc + (cur_values && parseInt(cur_values[
-                                    `${cur.season} ${`${cur.order <= 4 ? 'Early' : cur.order >= 9 ? 'Late' : 'Mid'}`} ${cur.round}`
-                                ]?.[superflex ? 'sf' : 'oneqb'] || 0)) || 0
-                                , 0)
-                    const trend = cur_value - trans_value
+                    const trend_total = current_value_total - trade_value_total
 
                     return {
                         id: trade.transaction_id,
@@ -85,18 +88,18 @@ const Trade = ({
                                         <p className='value'>
                                             KTC -&nbsp;
                                             {
-                                                trans_value.toLocaleString("en-US")
+                                                trade_value_total
                                             }
                                         </p>
                                         <p
-                                            className={(trend > 0 ? 'green trend' : trend < 0 ? 'red trend' : 'trend')}
-                                            style={getTrendColor(trend, 1.5)}
+                                            className={(trend_total > 0 ? 'green trend' : trend_total < 0 ? 'red trend' : 'trend')}
+                                            style={getTrendColor(trend_total, 1.5)}
                                         >
                                             {
-                                                trend > 0 ? '+' : ''
+                                                trend_total > 0 ? '+' : ''
                                             }
                                             {
-                                                trend.toString()
+                                                trend_total.toString()
                                             }
 
                                         </p>
@@ -120,8 +123,16 @@ const Trade = ({
                                     <tbody>
                                         {
                                             Object.keys(trade.adds || {}).filter(a => trade.adds[a] === roster?.user_id).map(player_id => {
-                                                const value = trans_values?.[player_id]?.[superflex ? 'sf' : 'oneqb'] || '-'
-                                                const trend = cur_values?.[player_id] && trans_values?.[player_id] && (cur_values?.[player_id]?.[superflex ? 'sf' : 'oneqb'] - trans_values?.[player_id]?.[superflex ? 'sf' : 'oneqb'])
+
+                                                const value = getTradeValue(player_id, date, type)
+
+
+
+
+
+                                                const trade_value = getTradeValue(player_id, trade_date, type)
+
+                                                const trend = (value || 0) - (trade_value || 0)
                                                 return <tr>
                                                     <td colSpan={11} className={
                                                         `${trade.tips?.trade_away && trade.tips?.trade_away?.find(p => p.player_id === player_id)?.manager.user_id === rid
@@ -132,7 +143,7 @@ const Trade = ({
                                                     } ><p><span >+ {allplayers[player_id]?.full_name}</span></p></td>
                                                     <td className='value'
                                                         colSpan={4}>
-                                                        {value}
+                                                        {trade_value}
                                                     </td>
                                                     <td
                                                         className={trend > 0 ? 'green stat value' : trend < 0 ? 'red stat value' : 'stat value'}
@@ -152,10 +163,13 @@ const Trade = ({
                                                 .filter(p => p.owner_id === roster?.roster_id)
                                                 .sort((a, b) => (a.season) - b.season || a.round - b.round)
                                                 .map(pick => {
-                                                    const ktc_name = `${pick.season} ${pick.order <= 4 ? 'Early' : pick.order >= 9 ? 'Late' : 'Mid'} ${pick.round}`
+                                                    const ktc_name = getKtcPickName(pick)
 
-                                                    const value = trans_values?.[ktc_name]?.[superflex ? 'sf' : 'oneqb'] || '-'
-                                                    const trend = cur_values?.[ktc_name] && trans_values?.[ktc_name] && ((cur_values?.[ktc_name]?.[superflex ? 'sf' : 'oneqb'] - trans_values?.[ktc_name]?.[superflex ? 'sf' : 'oneqb'])).toString() || '-'
+                                                    const value = values.find(value => value.player_id.includes(ktc_name) && value.date === date && value.type === type)?.value
+
+                                                    const trade_value = values.find(value => value.player_id.includes(ktc_name) && value.date === trade_date && value.type === type)?.value
+
+                                                    const trend = (value || 0) - (trade_value || 0)
                                                     return <tr>
                                                         <td
                                                             colSpan={11}
@@ -181,7 +195,7 @@ const Trade = ({
                                                             colSpan={3}
                                                         >
                                                             {
-                                                                cur_values?.[ktc_name]?.[superflex ? 'sf' : 'oneqb'] - trans_values?.[ktc_name]?.[superflex ? 'sf' : 'oneqb'] > 0 ? '+' : ''
+                                                                trend > 0 ? '+' : ''
                                                             }
                                                             {trend}
                                                         </td>

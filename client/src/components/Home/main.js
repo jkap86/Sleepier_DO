@@ -13,6 +13,7 @@ import { fetchMatchups } from "../../redux/actions/fetchMatchups";
 import { getRecordDict } from "../../functions/getRecordDict";
 import LeaguesMain from "../Leagues/leaguesMain";
 import Trades from "../Trades/trades";
+import axios from 'axios'
 
 const Main = () => {
     const params = useParams();
@@ -31,10 +32,7 @@ const Main = () => {
     } = useSelector(state => state.lineups);
     const { recordType: recordTypeLeagues } = useSelector(state => state.leagues);
 
-    if (filteredData) {
-        console.log({ filteredData })
 
-    }
 
     useEffect(() => {
         // Fetch allplayers, schedule, projections only on load if they don't exist
@@ -50,6 +48,8 @@ const Main = () => {
         if (!projections) {
             dispatch(fetchMain('projections'));
         };
+
+
     }, [])
 
 

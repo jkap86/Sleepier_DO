@@ -1,12 +1,183 @@
 [
     {
-        "sleeper_id": "9230",
-        "name": "Tanner McKee",
-        "position": "QB",
-        "college": "Stanford",
-        "team": "PHI",
-        "draft_year": 2023,
-        "birthdate": "2000-04-27"
+        "ktc_id": "1293",
+        "name": "2024 Early 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1361",
+        "name": "2025 Early 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1527",
+        "name": "2026 Early 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1294",
+        "name": "2024 Mid 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1362",
+        "name": "2025 Mid 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1528",
+        "name": "2026 Mid 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1295",
+        "name": "2024 Late 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1363",
+        "name": "2025 Late 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1529",
+        "name": "2026 Late 1st",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1296",
+        "name": "2024 Early 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1364",
+        "name": "2025 Early 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1530",
+        "name": "2026 Early 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1297",
+        "name": "2024 Mid 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1365",
+        "name": "2025 Mid 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1531",
+        "name": "2026 Mid 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1298",
+        "name": "2024 Late 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1366",
+        "name": "2025 Late 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1532",
+        "name": "2026 Late 2nd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1299",
+        "name": "2024 Early 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1367",
+        "name": "2025 Early 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1533",
+        "name": "2026 Early 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1300",
+        "name": "2024 Mid 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1368",
+        "name": "2025 Mid 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1534",
+        "name": "2026 Mid 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1301",
+        "name": "2024 Late 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1369",
+        "name": "2025 Late 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1535",
+        "name": "2026 Late 3rd",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1302",
+        "name": "2024 Early 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1370",
+        "name": "2025 Early 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1536",
+        "name": "2026 Early 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1303",
+        "name": "2024 Mid 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1371",
+        "name": "2025 Mid 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1537",
+        "name": "2026 Mid 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1304",
+        "name": "2024 Late 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1372",
+        "name": "2025 Late 4th",
+        "position": "PICK"
+    },
+    {
+        "ktc_id": "1538",
+        "name": "2026 Late 4th",
+        "position": "PICK"
     },
     {
         "sleeper_id": "9228",

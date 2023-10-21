@@ -60,6 +60,18 @@ module.exports = (app) => {
         }
     })
 
+    router.post('/playervalues', (req, res) => {
+        const playervalues = fs.readFileSync('./playervalues.json', 'utf-8')
+
+        const data = JSON.parse(playervalues)
+            .filter(pv =>
+                req.body.player_ids.includes(pv.player_id)
+                || pv.player_id.includes(' ')
+            )
+
+        res.send(data)
+    })
+
     app.use('/main', router);
 }
 

@@ -195,15 +195,18 @@ export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
     }
 }
 
-export const fetchLmTrades = (user_id, leagues, season, offset, limit) => {
+export const fetchLmTrades = (user_id, leagues, season, offset, limit, type1, type2) => {
     return async (dispatch) => {
         dispatch({ type: 'FETCH_TRADES_START' });
 
         try {
+            const hash = `${type1}_${type2}`
             const trades = await axios.post('/trade/leaguemate', {
                 user_id: user_id,
                 offset: offset,
-                limit: limit
+                limit: limit,
+                type1: type1,
+                type2: type2
             })
 
             console.log({ trades })
@@ -214,7 +217,8 @@ export const fetchLmTrades = (user_id, leagues, season, offset, limit) => {
             dispatch({
                 type: 'FETCH_LMTRADES_SUCCESS', payload: {
                     count: trades.data.count,
-                    trades: trades_tips
+                    trades: trades_tips,
+                    //hash: hash
                 }
             });
         } catch (error) {
@@ -288,3 +292,18 @@ export const fetchPriceCheckTrades = (pricecheck_player, pricecheck_player2, off
     }
 
 };
+
+export const fetchPV = (player_ids) => {
+    return async (dispatch) => {
+        try {
+            const pv = await axios.post('/main/playervalues', {
+                player_ids: player_ids
+            })
+
+            dispatch({ type: 'SET_STATE_MAIN', payload: { values: pv.data } })
+        } catch (err) {
+            console.log(err)
+        }
+
+    }
+}

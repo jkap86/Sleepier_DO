@@ -7,7 +7,8 @@ const initialState = {
     type1: 'All',
     type2: 'All',
     isLoading: [],
-    stats: {}
+    stats: {},
+    values: []
 };
 
 const mainReducer = (state = initialState, action) => {
