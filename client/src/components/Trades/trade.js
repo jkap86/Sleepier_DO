@@ -18,10 +18,12 @@ const Trade = ({
         ? 'sf'
         : 'oneqb'
 
-    console.log({ type })
+
 
     const getTradeValue = (player_id, date, type) => {
-        return values.find(value => (value.player_id === player_id || value.player_id.includes(player_id)) && value.date === date && type === 'sf')?.value
+
+        const value = values.find(value => (value.player_id === player_id || value.player_id.includes(player_id)) && value.date === date && value.type === type)?.value
+        return value || 0
     }
 
     const getKtcPickName = (pick) => {
