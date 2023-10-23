@@ -87,7 +87,7 @@ const getSchedule = async () => {
     if (games_in_progress) {
         const min = new Date().getMinutes()
 
-        delay = (min % 15) * 60 * 1000
+        delay = ((min % 15) * 60 * 1000) + 1
     } else {
 
         const next_kickoff = Math.min(...Object.keys(schedule)
