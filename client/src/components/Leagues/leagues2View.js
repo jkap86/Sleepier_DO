@@ -10,7 +10,8 @@ import { useEffect } from "react";
 const Leagues2View = ({
     league,
     scoring_settings,
-    type
+    type,
+    standings
 }) => {
     const dispatch = useDispatch();
     const { state } = useSelector(state => state.main);
@@ -40,36 +41,11 @@ const Leagues2View = ({
         ]
     ]
 
-    const standings = recordType === 'Record'
-        ? league.rosters
-            .sort((a, b) => b.settings.wins - a.settings.wins || b.settings.fpts - a.settings.fpts)
-
-        : league.rosters
-            .sort((a, b) => lineupChecks.totals?.[league.league_id][b.roster_id].wins - lineupChecks.totals?.[league.league_id][a.roster_id].wins
-                || lineupChecks.totals?.[league.league_id][b.roster_id].fp - lineupChecks.totals?.[league.league_id][a.roster_id].fp)
-
-
 
 
     const standings_body = standings
         ?.map((team, index) => {
-            let record;
-
-            const ties = lineupChecks.totals?.[league.league_id]?.[team.roster_id]?.ties;
-
-            if (recordType === 'Record') {
-                record = team.settings.wins
-                    + '-'
-                    + team.settings.losses
-                    + (team.settings.ties > 0 ? '-' + team.settings.ties : '')
-            } else {
-                record = lineupChecks.totals
-                    && (lineupChecks.totals?.[league.league_id]?.[team.roster_id]?.wins
-                        + '-'
-                        + lineupChecks.totals?.[league.league_id]?.[team.roster_id]?.losses
-                        + (ties > 0 ? '-' + ties : ''))
-                    || 'Loading'
-            }
+            const record = standings.find(s => s.roster_id === team.roster_id)
             return {
                 id: team.roster_id,
                 list: [
@@ -84,13 +60,11 @@ const Leagues2View = ({
                         }
                     },
                     {
-                        text: record,
+                        text: `${record.wins}-${record.losses}${record.ties > 0 ? `-${record.ties}` : ''}`,
                         colSpan: 2
                     },
                     {
-                        text: (
-                            parseFloat(team.settings.fpts + '.' + (team.settings.fpts_decimal || '00'))
-                        ).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
+                        text: (record.fpts).toLocaleString("en-US", { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
                         colSpan: 3
                     }
                 ]
@@ -199,8 +173,12 @@ const Leagues2View = ({
         ]
     ]
 
+    const final_week = league.settings.playoff_week_start === 0
+        ? 18
+        : league.settings.playoff_week_start - 1
+
     const matchups_body = active_roster
-        && Array.from(Array(18).keys()).map(key => key + 1)
+        && Array.from(Array(final_week).keys()).map(key => key + 1)
             .map(week => {
                 let roster_id_opp;
                 let pts_for;

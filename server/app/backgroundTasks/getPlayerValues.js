@@ -81,11 +81,14 @@ module.exports = async (app) => {
 
         console.log(`Update Complete`)
     }
-    await getDailyValues()
 
-    setInterval(async () => {
+    if (process.env.DATABASE_URL) {
         await getDailyValues()
-    }, 60 * 60 * 1000)
+
+        setInterval(async () => {
+            await getDailyValues()
+        }, 60 * 60 * 1000)
+    }
 
     const gethistoricalPicks = async () => {
         const stateAllPlayers = fs.readFileSync('./allplayers.json', 'utf-8')
