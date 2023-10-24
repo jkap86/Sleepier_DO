@@ -258,6 +258,17 @@ select.active {
   animation: rotate 4s linear infinite;
 }
 
+
+div.secondary.nav p.username {
+  color: var(--te);
+  font-family: var(--font2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 50%;
+  line-height: 200%;
+
+}
+
 @keyframes rotate {
   0% {
     transform: rotate(0deg);

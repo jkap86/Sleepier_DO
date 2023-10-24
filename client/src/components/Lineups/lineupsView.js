@@ -510,6 +510,9 @@ const LineupsView = () => {
                 const proj_score_opp_optimal = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_optimal;
                 const proj_score_opp_actual = lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_actual;
 
+                const opp_roster = league.rosters.find(r => r.roster_id === matchup_opp?.roster_id)
+
+                console.log({ opp_roster })
                 const players_projections = {
                     ...lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.players_projections,
                     ...lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.players_projections
@@ -605,6 +608,8 @@ const LineupsView = () => {
                         proj_score_user_optimal={proj_score_user_optimal}
                         proj_score_opp_actual={proj_score_opp_actual}
                         proj_score_opp_optimal={proj_score_opp_optimal}
+                        opp_username={opp_roster?.username || 'Orphan'}
+                        opp_avatar={opp_roster?.avatar}
                     />
                 }
             } else {

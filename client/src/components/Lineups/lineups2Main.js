@@ -22,7 +22,9 @@ const Lineups2Main = ({
     start,
     bench,
     start_opp,
-    bench_opp
+    bench_opp,
+    opp_username,
+    opp_avatar
 }) => {
     const dispatch = useDispatch();
     const { user_id, username } = useSelector(state => state.user);
@@ -61,6 +63,8 @@ const Lineups2Main = ({
         bench={bench}
         start_opp={start_opp}
         bench_opp={bench_opp}
+        opp_username={opp_username}
+        opp_avatar={opp_avatar}
     />
 }
 

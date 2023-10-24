@@ -21,15 +21,18 @@ const Lineups2View = ({
     start,
     bench,
     start_opp,
-    bench_opp
+    bench_opp,
+    opp_username,
+    opp_avatar
 }) => {
     const dispatch = useDispatch();
     const { state, allplayers, projections, schedule } = useSelector(state => state.main);
-    const { user_id, username, syncing } = useSelector(state => state.user);
+    const { username, syncing } = useSelector(state => state.user);
     const {
         week,
         rankings,
-        secondaryContent,
+        secondaryContent1,
+        secondaryContent2,
         itemActive2,
         page2_start,
         page2_bench,
@@ -61,101 +64,12 @@ const Lineups2View = ({
     const lineup_headers = [
         [
             {
-                text: proj_score_user_actual?.toFixed(2),
-                colSpan: 23,
-                className: 'half'
-            }
-        ],
-        [
-            {
-                text: 'Slot',
-                colSpan: 3,
-                className: 'half'
-            },
-            {
-                text: 'Player',
-                colSpan: 10,
-                className: 'half'
-            },
-            {
-                text: 'Opp',
-                colSpan: 3,
-                className: 'half'
-            },
-            {
-                text: rankings ? 'Rank' : 'Proj',
-                colSpan: 3,
-                className: 'half'
-            },
-            {
-                text: 'Points',
-                colSpan: 4,
-                className: 'half'
-            }
-        ]
-    ]
-
-    const lineup_body = lineup_check?.map((slot, index) => {
-        const color = (
-            !optimal_lineup.find(x => x.player === slot.current_player) ? 'red'
-                : slot.earlyInFlex || slot.lateNotInFlex ? 'yellow'
-                    : ''
-        )
-
-        return {
-            id: slot.slot_index,
-            list: !matchup_user ? [] : [
-                {
-                    text: lineup_check?.find(x => x.current_player === slot.current_player)?.slot,
-                    colSpan: 3,
-                    className: color
-                },
-                {
-                    text: <>{allplayers[slot.current_player]?.full_name}<span className="player_inj_status">{getInjuryAbbrev(projections[week]?.[slot.current_player]?.injury_status)}</span></> || 'Empty',
-                    colSpan: 10,
-                    className: color + " left",
-                    image: {
-                        src: slot.current_player,
-                        alt: allplayers[slot.current_player]?.full_name,
-                        type: 'player'
-                    }
-                },
-                {
-                    text: matchTeam(schedule[week]
-                        ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[slot.current_player]?.team))
-                        ?.team
-                        ?.find(team => matchTeam(team.id) !== allplayers[slot.current_player]?.team)
-                        ?.id) || 'FA',
-                    colSpan: 3,
-                    className: color
-                },
-                {
-                    text: rankings
-                        ? rankings[slot.current_player]?.prevRank || 999
-                        : players_projections[slot.current_player]?.toFixed(1) || '-',
-                    colSpan: 3,
-                    className: color
-                },
-                {
-                    text: matchup_user?.players_points[slot.current_player]?.toFixed(1) || '-',
-                    colSpan: 4,
-                    className: color
-                }
-            ]
-        }
-    })
-
-    const subs_headers = [
-        [
-            {
                 text: (
-                    secondaryContent === 'Optimal'
-                        ? proj_score_user_optimal?.toFixed(2)
-                        : secondaryContent === 'Opp-Lineup'
-                            ? proj_score_opp_actual?.toFixed(2)
-                            : secondaryContent === 'Opp-Optimal'
-                                ? proj_score_opp_optimal?.toFixed(2)
-                                : ''
+                    secondaryContent1 === 'Lineup'
+                        ? proj_score_user_actual?.toFixed(2)
+                        : secondaryContent1 === 'Optimal'
+                            ? proj_score_user_optimal?.toFixed(2)
+                            : ''
                 ),
                 colSpan: 23,
                 className: 'half'
@@ -190,9 +104,145 @@ const Lineups2View = ({
         ]
     ]
 
-    const subs_body = itemActive2 && secondaryContent === 'Options' ?
-        [
+    const lineup_body = secondaryContent1 === 'Lineup'
+        ? lineup_check?.map((slot, index) => {
+            const color = (
+                !optimal_lineup.find(x => x.player === slot.current_player) ? 'red'
+                    : slot.earlyInFlex || slot.lateNotInFlex ? 'yellow'
+                        : ''
+            )
 
+            return {
+                id: slot.slot_index,
+                list: !matchup_user ? [] : [
+                    {
+                        text: lineup_check?.find(x => x.current_player === slot.current_player)?.slot,
+                        colSpan: 3,
+                        className: color
+                    },
+                    {
+                        text: <>{allplayers[slot.current_player]?.full_name}<span className="player_inj_status">{getInjuryAbbrev(projections[week]?.[slot.current_player]?.injury_status)}</span></> || 'Empty',
+                        colSpan: 10,
+                        className: color + " left",
+                        image: {
+                            src: slot.current_player,
+                            alt: allplayers[slot.current_player]?.full_name,
+                            type: 'player'
+                        }
+                    },
+                    {
+                        text: matchTeam(schedule[week]
+                            ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[slot.current_player]?.team))
+                            ?.team
+                            ?.find(team => matchTeam(team.id) !== allplayers[slot.current_player]?.team)
+                            ?.id) || 'FA',
+                        colSpan: 3,
+                        className: color
+                    },
+                    {
+                        text: rankings
+                            ? rankings[slot.current_player]?.prevRank || 999
+                            : players_projections[slot.current_player]?.toFixed(1) || '-',
+                        colSpan: 3,
+                        className: color
+                    },
+                    {
+                        text: matchup_user?.players_points[slot.current_player]?.toFixed(1) || '-',
+                        colSpan: 4,
+                        className: color
+                    }
+                ]
+            }
+        })
+        : optimal_lineup?.map((ol, index) => {
+            return {
+                id: ol.player,
+                list: [
+                    {
+                        text: ol.slot,
+                        colSpan: 3,
+                        className: 'green'
+                    },
+                    {
+                        text: allplayers[ol.player]?.full_name || ol.player?.toString(),
+                        colSpan: 10,
+                        className: 'left green',
+                        image: {
+                            src: ol.player,
+                            alt: allplayers[ol.player]?.full_name,
+                            type: 'player'
+                        }
+                    },
+                    {
+                        text: matchTeam(schedule[state.week]
+                            ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[ol.player]?.team))
+                            ?.team
+                            ?.find(team => matchTeam(team.id) !== allplayers[ol.player]?.team)
+                            ?.id) || 'FA',
+                        colSpan: 3,
+                        className: 'green'
+                    },
+                    {
+                        text: rankings
+                            ? rankings[ol.player]?.prevRank || 999
+                            : (players_projections[ol.player] || 0).toFixed(1),
+                        colSpan: 3,
+                        className: 'green'
+                    },
+                    {
+                        text: matchup_user?.players_points[ol.player] && matchup_user?.players_points[ol.player].toFixed(1) || '-',
+                        colSpan: 4,
+                        className: 'green'
+                    }
+                ]
+            }
+        })
+
+    const subs_headers = [
+        [
+            {
+                text: (
+                    secondaryContent2 === 'Lineup'
+                        ? proj_score_opp_actual?.toFixed(2)
+                        : secondaryContent2 === 'Optimal'
+                            ? proj_score_opp_optimal?.toFixed(2)
+                            : ''
+                ),
+                colSpan: 23,
+                className: 'half'
+            }
+        ],
+        [
+            {
+                text: 'Slot',
+                colSpan: 3,
+                className: 'half'
+            },
+            {
+                text: 'Player',
+                colSpan: 10,
+                className: 'half'
+            },
+            {
+                text: 'Opp',
+                colSpan: 3,
+                className: 'half'
+            },
+            {
+                text: rankings ? 'Rank' : 'Proj',
+                colSpan: 3,
+                className: 'half'
+            },
+            {
+                text: 'Points',
+                colSpan: 4,
+                className: 'half'
+            }
+        ]
+    ]
+
+    const subs_body = itemActive2
+        ? [
             {
                 id: 'warning',
                 list: [
@@ -262,8 +312,47 @@ const Lineups2View = ({
                     }
                 })
         ]
-        : secondaryContent === 'Opp-Lineup' ?
-            matchup_opp?.starters?.map((opp_starter, index) => {
+        : secondaryContent2 === 'Optimal'
+            ? optimal_lineup_opp?.map((opp_starter, index) => {
+                return {
+                    id: opp_starter.player || opp_starter,
+                    list: [
+                        {
+                            text: lineup_check_opp[index]?.slot,
+                            colSpan: 3
+                        },
+                        {
+                            text: allplayers[opp_starter.player || opp_starter]?.full_name || 'Empty',
+                            colSpan: 10,
+                            className: 'left',
+                            image: {
+                                src: opp_starter.player || opp_starter,
+                                alt: allplayers[opp_starter.player || opp_starter]?.full_name,
+                                type: 'player'
+                            }
+                        },
+                        {
+                            text: matchTeam(schedule[state.week]
+                                ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[opp_starter.player]?.team))
+                                ?.team
+                                ?.find(team => matchTeam(team.id) !== allplayers[opp_starter.player]?.team)
+                                ?.id) || 'FA',
+                            colSpan: 3,
+                        },
+                        {
+                            text: rankings
+                                ? rankings[opp_starter.player || opp_starter]?.prevRank || 999
+                                : (players_projections[opp_starter.player] || 0).toFixed(1),
+                            colSpan: 3
+                        },
+                        {
+                            text: matchup_opp?.players_points[opp_starter.player || opp_starter].toFixed(1),
+                            colSpan: 4
+                        }
+                    ]
+                }
+            })
+            : matchup_opp?.starters?.map((opp_starter, index) => {
                 return {
                     id: opp_starter,
                     list: [
@@ -302,89 +391,8 @@ const Lineups2View = ({
                     ]
                 }
             })
-            : secondaryContent === 'Opp-Optimal' ?
-                optimal_lineup_opp?.map((opp_starter, index) => {
-                    return {
-                        id: opp_starter.player || opp_starter,
-                        list: [
-                            {
-                                text: lineup_check_opp[index]?.slot,
-                                colSpan: 3
-                            },
-                            {
-                                text: allplayers[opp_starter.player || opp_starter]?.full_name || 'Empty',
-                                colSpan: 10,
-                                className: 'left',
-                                image: {
-                                    src: opp_starter.player || opp_starter,
-                                    alt: allplayers[opp_starter.player || opp_starter]?.full_name,
-                                    type: 'player'
-                                }
-                            },
-                            {
-                                text: matchTeam(schedule[state.week]
-                                    ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[opp_starter.player]?.team))
-                                    ?.team
-                                    ?.find(team => matchTeam(team.id) !== allplayers[opp_starter.player]?.team)
-                                    ?.id) || 'FA',
-                                colSpan: 3,
-                            },
-                            {
-                                text: rankings
-                                    ? rankings[opp_starter.player || opp_starter]?.prevRank || 999
-                                    : (players_projections[opp_starter.player] || 0).toFixed(1),
-                                colSpan: 3
-                            },
-                            {
-                                text: matchup_opp?.players_points[opp_starter.player || opp_starter].toFixed(1),
-                                colSpan: 4
-                            }
-                        ]
-                    }
-                })
-                : optimal_lineup?.map((ol, index) => {
-                    return {
-                        id: ol.player,
-                        list: [
-                            {
-                                text: ol.slot,
-                                colSpan: 3,
-                                className: 'green'
-                            },
-                            {
-                                text: allplayers[ol.player]?.full_name || ol.player?.toString(),
-                                colSpan: 10,
-                                className: 'left green',
-                                image: {
-                                    src: ol.player,
-                                    alt: allplayers[ol.player]?.full_name,
-                                    type: 'player'
-                                }
-                            },
-                            {
-                                text: matchTeam(schedule[state.week]
-                                    ?.find(matchup => matchup.team.find(t => matchTeam(t.id) === allplayers[ol.player]?.team))
-                                    ?.team
-                                    ?.find(team => matchTeam(team.id) !== allplayers[ol.player]?.team)
-                                    ?.id) || 'FA',
-                                colSpan: 3,
-                                className: 'green'
-                            },
-                            {
-                                text: rankings
-                                    ? rankings[ol.player]?.prevRank || 999
-                                    : (players_projections[ol.player] || 0).toFixed(1),
-                                colSpan: 3,
-                                className: 'green'
-                            },
-                            {
-                                text: matchup_user?.players_points[ol.player] && matchup_user?.players_points[ol.player].toFixed(1) || '-',
-                                colSpan: 4,
-                                className: 'green'
-                            }
-                        ]
-                    }
-                })
+
+
 
     const getGroupHeader = (type) => {
         return [
@@ -464,8 +472,18 @@ const Lineups2View = ({
             : <>
                 <div className="secondary nav">
                     <div>
-                        <button>
+                        <button
+                            className={secondaryContent1 === 'Lineup' ? 'active click' : 'click'}
+                            onClick={() => dispatch(setState({ secondaryContent1: 'Lineup' }, 'LINEUPS'))}
+                        >
                             Lineup
+                        </button>
+                        <p className="username">{username}</p>
+                        <button
+                            className={secondaryContent1 === 'Optimal' ? 'active click' : 'click'}
+                            onClick={() => dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))}
+                        >
+                            Optimal
                         </button>
                     </div>
                     <button
@@ -474,34 +492,29 @@ const Lineups2View = ({
                     >
                         <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
                     </button>
-                    <div>
+                    <div >
                         {
                             itemActive2
                                 ? <button
-                                    className={secondaryContent === 'Options' ? 'active click' : !itemActive2 ? 'inactive' : 'click'}
-                                    onClick={itemActive2 ? () => dispatch(setState({ secondaryContent: 'Options' }, 'LINEUPS')) : null}
+                                    className={'active click'}
+                                    onClick={() => dispatch(setState({ itemActive2: '' }, 'LINEUPS'))}
                                 >
                                     Options
                                 </button>
                                 : <>
-                                    <button
-                                        className={secondaryContent === 'Optimal' ? 'active click' : 'click'}
-                                        onClick={() => dispatch(setState({ secondaryContent: 'Optimal' }, 'LINEUPS'))}
-                                    >
-                                        Optimal
-                                    </button>
 
                                     <button
-                                        className={secondaryContent === 'Opp-Lineup' ? 'active click' : 'click'}
-                                        onClick={() => dispatch(setState({ secondaryContent: 'Opp-Lineup' }, 'LINEUPS'))}
+                                        className={secondaryContent2 === 'Lineup' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent2: 'Lineup' }, 'LINEUPS'))}
                                     >
-                                        Opp-Lineup
+                                        Lineup
                                     </button>
+                                    <p className="username">{opp_username}</p>
                                     <button
-                                        className={secondaryContent === 'Opp-Optimal' ? 'active click' : 'click'}
-                                        onClick={() => dispatch(setState({ secondaryContent: 'Opp-Optimal' }, 'LINEUPS'))}
+                                        className={secondaryContent2 === 'Optimal' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent2: 'Optimal' }, 'LINEUPS'))}
                                     >
-                                        Opp-Optimal
+                                        Optimal
                                     </button>
                                 </>
                         }
