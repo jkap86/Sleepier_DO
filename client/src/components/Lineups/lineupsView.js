@@ -28,7 +28,6 @@ const LineupsView = () => {
         itemActive,
         page,
         searched,
-        recordType,
         playerLineupDict,
         primaryContent,
         sortBy,
@@ -52,6 +51,8 @@ const LineupsView = () => {
         : [
             'Proj FP',
             'Proj FPA',
+            'Proj FP (Opt)',
+            'Proj FPA (Opt)',
             'Proj Median',
             'Suboptimal',
             'Early/Late Flex',
@@ -227,22 +228,32 @@ const LineupsView = () => {
         ]
     ]
 
-    const getColumnValue = (header, matchup, lineup_check, league, opt_proj, act_proj, opp_opt_proj, proj_median) => {
+    const getColumnValue = (header, matchup, lineup_check, league, opt_proj, act_proj, opp_opt_proj, opp_act_proj, proj_median) => {
         if (league.settings.status === 'in_season') {
             switch (header) {
                 case 'Proj FP':
                     return {
-                        text: opt_proj.toFixed(2),
+                        text: act_proj?.toFixed(2),
                         colSpan: 2
                     }
                 case 'Proj FPA':
                     return {
-                        text: opp_opt_proj.toFixed(2),
+                        text: opp_act_proj?.toFixed(2),
+                        colSpan: 2
+                    }
+                case 'Proj FP (Opt)':
+                    return {
+                        text: opt_proj?.toFixed(2),
+                        colSpan: 2
+                    }
+                case 'Proj FPA (Opt)':
+                    return {
+                        text: opp_opt_proj?.toFixed(2),
                         colSpan: 2
                     }
                 case 'Proj Median':
                     return {
-                        text: parseInt(proj_median) && proj_median.toFixed(2) || '-',
+                        text: parseInt(proj_median) && proj_median?.toFixed(2) || '-',
                         colSpan: 2
                     }
                 case 'Suboptimal':
@@ -531,12 +542,19 @@ const LineupsView = () => {
                             text: <>
                                 {
                                     (lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user && lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp)
-                                        ? proj_score_user_optimal > proj_score_opp_optimal
-                                            ? 'W'
-                                            : proj_score_user_optimal < proj_score_opp_optimal
-                                                ? 'L'
-                                                : '-'
+                                        ? league.settings.best_ball !== 1
+                                            ? proj_score_user_actual > proj_score_opp_actual
+                                                ? 'W'
+                                                : proj_score_user_actual < proj_score_opp_actual
+                                                    ? 'L'
+                                                    : '-'
+                                            : proj_score_user_optimal > proj_score_opp_optimal
+                                                ? 'W'
+                                                : proj_score_user_optimal < proj_score_opp_optimal
+                                                    ? 'L'
+                                                    : '-'
                                         : '-'
+
                                 }
                                 {
                                     lineupChecks[week]?.[hash]?.[league.league_id]?.median_win > 0
@@ -548,24 +566,30 @@ const LineupsView = () => {
                             </>,
                             colSpan: 1,
                             className: (lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user && lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp)
-                                ? proj_score_user_optimal > proj_score_opp_optimal
-                                    ? 'greenb'
-                                    : proj_score_user_optimal < proj_score_opp_optimal
-                                        ? 'redb'
-                                        : '-'
+                                ? league.settings.best_ball !== 1
+                                    ? proj_score_user_actual > proj_score_opp_actual
+                                        ? 'greenb'
+                                        : proj_score_user_actual < proj_score_opp_actual
+                                            ? 'redb'
+                                            : '-'
+                                    : proj_score_user_optimal > proj_score_opp_optimal
+                                        ? 'greenb'
+                                        : proj_score_user_optimal < proj_score_opp_optimal
+                                            ? 'redb'
+                                            : '-'
                                 : '-',
                         },
                         {
-                            ...getColumnValue(column1, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
+                            ...getColumnValue(column1, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_score_opp_actual, proj_median)
                         },
                         {
-                            ...getColumnValue(column2, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
+                            ...getColumnValue(column2, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_score_opp_actual, proj_median)
                         },
                         {
-                            ...getColumnValue(column3, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
+                            ...getColumnValue(column3, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_score_opp_actual, proj_median)
                         },
                         {
-                            ...getColumnValue(column4, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_median)
+                            ...getColumnValue(column4, matchup_user, lineup_check_user, league, proj_score_user_optimal, proj_score_user_actual, proj_score_opp_optimal, proj_score_opp_actual, proj_median)
                         }
                     ],
                     secondary_table: <Lineups2Main
@@ -742,9 +766,16 @@ const LineupsView = () => {
         ? filterLeagues((leagues || []), type1, type2)
             .reduce((acc, cur) => {
                 const lc_league = lineupChecks[week]?.[hash]?.[cur.league_id]
-                const proj_score = parseFloat(lc_league?.lc_user?.[`proj_score_${recordType}`]);
-                const proj_score_opp = parseFloat(lc_league?.lc_opp?.[`proj_score_${recordType}`]);
 
+                let proj_score, proj_score_opp;
+
+                if (cur.settings.best_ball === 1) {
+                    proj_score = parseFloat(lc_league?.lc_user?.[`proj_score_optimal`]);
+                    proj_score_opp = parseFloat(lc_league?.lc_opp?.[`proj_score_optimal`]);
+                } else {
+                    proj_score = parseFloat(lc_league?.lc_user?.[`proj_score_actual`]);
+                    proj_score_opp = parseFloat(lc_league?.lc_opp?.[`proj_score_actual`]);
+                }
 
                 let wins = (lc_league?.win || 0) + (lc_league?.median_win || 0)
                 let losses = (lc_league?.loss || 0) + (lc_league?.median_loss || 0)
@@ -837,18 +868,13 @@ const LineupsView = () => {
                 <table className="summary">
                     <tbody>
                         <tr>
-                            <th>Type</th>
-                            <td>
-                                <select
-                                    className={'record_type'}
-                                    value={recordType}
-                                    onChange={(e) => dispatch(setState({ recordType: e.target.value }, 'LINEUPS'))}
-                                    disabled={true}
-                                >
-                                    <option value={'actual'}>Actual Proj</option>
-                                    <option value={'optimal'}>Optimal Proj</option>
-                                </select>
-                            </td>
+                            <th colSpan={2} >
+                                <span className="font2 wr">
+                                    {
+                                        week < state.week ? 'RESULT' : 'PROJECTION'
+                                    }
+                                </span>
+                            </th>
                         </tr>
                         <tr>
                             <th>Record</th>

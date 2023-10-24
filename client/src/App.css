@@ -196,6 +196,14 @@ option {
   direction: ltr;
 }
 
+.font2 {
+  font-family: var(--font2);
+  letter-spacing: 1rem;
+  color: var(--color2);
+  text-shadow: 0 0 .5rem black;
+}
+
+
 .end:hover {
   direction: rtl;
 }

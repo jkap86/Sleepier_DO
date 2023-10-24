@@ -26,7 +26,6 @@ const initialState = {
     primaryContent: 'Lineup Check',
     secondaryContent: 'Optimal',
     itemActive2: '',
-    recordType: 'optimal',
     isLoadingProjectionDict: false,
     sortBy: 'start',
     page2_start: 1,

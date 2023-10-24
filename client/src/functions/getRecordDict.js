@@ -1,6 +1,6 @@
-export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType, league_ids }) => {
+export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, league_ids }) => {
 
-    console.log({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id, recordType })
+    console.log({ week_to_fetch, state, leagues, allplayers, schedule, projections, includeTaxi, includeLocked, rankings, user_id })
 
     const getPlayerScore = (stats_array, scoring_settings, total = false) => {
 
@@ -323,6 +323,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
         leagues
             .filter(league => (!league_ids || league_ids?.includes(league.league_id)) && league[`matchups_${week}`])
             .map(league => {
+                const recordType = league.settings.best_ball === 1 ? 'optimal' : 'actual';
+
                 const roster_id = league.rosters
                     .find(roster => roster.user_id === user_id)?.roster_id
 
@@ -340,7 +342,13 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                     ?.map(m => {
                         return m && getLineupCheck(m, league, allplayers, rankings, projections[week], schedule[week], includeTaxi, includeLocked)
                     })
-                    ?.sort((a, b) => b[`proj_score_${recordType}`] - a[`proj_score_${recordType}`])
+                    ?.sort((a, b) => {
+                        if (league.settings.best_ball === 1) {
+                            return b[`proj_score_optimal`] - a[`proj_score_optimal`]
+                        } else {
+                            return b[`proj_score_actual`] - a[`proj_score_actual`]
+                        }
+                    })
 
                 const pts_rank = standings
                     ?.findIndex(lc => {
@@ -350,6 +358,8 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                 let win, loss, tie;
 
                 if (week >= league.settings.start_week && matchup_user && matchup_opp) {
+
+
                     if (lc_user[`proj_score_${recordType}`] > lc_opp[`proj_score_${recordType}`]) {
                         win = 1;
                         loss = 0;

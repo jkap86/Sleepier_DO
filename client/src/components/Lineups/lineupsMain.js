@@ -12,11 +12,6 @@ const LineupsMain = () => {
     const { week } = useSelector(state => state.lineups);
 
 
-    useEffect(() => {
-
-        dispatch(setState({ recordType: week < state.week ? 'actual' : 'optimal' }, 'LINEUPS'));
-
-    }, [week, state.week, dispatch])
 
     useEffect(() => {
         if (leagues && matchups) {
