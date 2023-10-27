@@ -45,6 +45,13 @@ const userReducer = (state = initialState, action) => {
                 errorLeagues: null
             };
         case 'FETCH_LEAGUES_SUCCESS':
+            const x_leagues = action.payload.filter(league => league.settings.status !== 'pre_draft' && !league.rosters
+                ?.find(r => r.user_id === state.user_id || r.co_owners?.find(co => co?.user_id === state.user_id))
+            )
+
+            console.log({ x_leagues })
+
+
             const leagues = action.payload.filter(league => league.settings.status !== 'pre_draft' && league.rosters
                 ?.find(r => r.user_id === state.user_id || r.co_owners?.find(co => co?.user_id === state.user_id))
             )
@@ -64,6 +71,9 @@ const userReducer = (state = initialState, action) => {
                 isLoadingLeagues: false,
                 leagues: leagues
             };
+
+
+
         case 'FETCH_LEAGUES_FAILURE':
             return {
                 ...state,

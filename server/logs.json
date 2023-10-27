@@ -1,1 +1,1 @@
-[]
+[{"timestamp":"10/27/2023, 2:45:15 PM","ip":"127.0.0.1","route":"/user/create?username=jkap86","request":{"username":"jkap86"}},{"timestamp":"10/27/2023, 2:45:16 PM","ip":"127.0.0.1","route":"/league/find?user_id=424024949334740992","request":{"user_id":"424024949334740992"}},{"timestamp":"10/27/2023, 2:45:47 PM","ip":"127.0.0.1","route":"/user/create?username=jkap86","request":{"username":"jkap86"}},{"timestamp":"10/27/2023, 2:45:48 PM","ip":"127.0.0.1","route":"/league/find?user_id=424024949334740992","request":{"user_id":"424024949334740992"}}]
