@@ -5,14 +5,22 @@ const fs = require('fs');
 const logVisits = (req, res, next) => {
     const route = req.originalUrl;
 
-    if (!route.includes('/main/logs/')) {
+    const routes_to_log = [
+        '/user/create',
+        '/trade/',
+        '/league/',
+        '/rof',
+        '/osr'
+    ];
+
+    if (routes_to_log.some(x => route.includes(x))) {
 
         const log_file = fs.readFileSync('./logs.json', 'utf-8');
 
         const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
 
-        console.log({ timestamp })
+
         let requestData;
         if (req.method === 'GET') {
             requestData = req.query;

@@ -73,13 +73,26 @@ module.exports = (app) => {
     })
 
     router.get('/logs/:date', (req, res) => {
+        const route_includes = req.query.route_includes
+
+        let key, value;
+        if (req.query.param?.includes('-')) {
+            key = req.query.param.split('-')[0]
+            value = req.query.param.split('-')[1]
+        }
+
+
         const logs = fs.readFileSync('./logs.json')
 
         const logs_to_send = JSON.parse(logs)
-            .filter(l =>
+            .filter(l => (
                 req.params.date.toLowerCase() === 'all'
                 || req.params.date === l.timestamp.split(',')[0].replace(/[^0-9]/g, '')
-            )
+            ) && (
+                    !route_includes || l.route.includes(route_includes)
+                ) && (
+                    l.request?.[key]?.toString() === value
+                ))
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
 
         res.send(logs_to_send)
