@@ -146,7 +146,7 @@ exports.find = async (req, res) => {
     }
 }
 
-const updateLeagueMatchups = async (league_matchup) => {
+const updateLeagueMatchups = async (league_matchup, display_week) => {
     let updated_rosters;
 
     try {
@@ -172,13 +172,34 @@ const updateLeagueMatchups = async (league_matchup) => {
 
     if (updated_rosters) {
         const weeks_to_update = league_matchup.weeks_to_update
+
         let updated_league_matchups = {};
+
+        let matchups_final = []
+        let current_matchups_update;
 
         for (const week_key of weeks_to_update) {
             const week = week_key.split('_')[1]
             try {
                 const matchup_week = await axios.get(`https://api.sleeper.app/v1/league/${league_matchup.league_id}/matchups/${week}`)
+
                 updated_league_matchups[week_key] = matchup_week.data
+
+                if (
+                    parseInt(week) + 1 < parseInt(display_week)
+                    || (
+                        parseInt(week) + 1 === parseInt(display_week)
+                        && (
+                            new Date().getDay() >= 3
+                            || (new Date().getDay() === 2 && new Date().getHours() > 18)
+                        )
+                    )
+                ) {
+                    matchups_final.push(week)
+                } else if (parseInt(week) === parseInt(display_week)) {
+                    current_matchups_update = new Date().getTime()
+                }
+
             } catch (err) {
                 console.log(err.message)
             }
@@ -187,6 +208,22 @@ const updateLeagueMatchups = async (league_matchup) => {
             league_id: league_matchup.league_id,
             rosters: updated_rosters,
             ...updated_league_matchups
+        }
+
+        if (matchups_final.length > 0) {
+            const updated_settings = {
+                ...league_matchup.settings,
+                matchups_final: Array.from(new Set([...league_matchup.settings.matchups_final || [], ...matchups_final]))
+            }
+
+            updated_league.settings = updated_settings
+        } else if (current_matchups_update) {
+            const updated_settings = {
+                ...league_matchup.settings,
+                current_matchups_update: current_matchups_update
+            }
+
+            updated_league.settings = updated_settings
         }
 
         await League.upsert({ ...updated_league })
@@ -200,6 +237,7 @@ const updateLeagueMatchups = async (league_matchup) => {
 exports.matchups = async (req, res) => {
 
     let league_matchups = req.body.all_matchups_to_update;
+    const display_week = req.body.display_week
 
     const updated_matchups = [];
 
@@ -213,7 +251,7 @@ exports.matchups = async (req, res) => {
                     .map(async league_matchup => {
 
                         try {
-                            const updated_league = await updateLeagueMatchups(league_matchup);
+                            const updated_league = await updateLeagueMatchups(league_matchup, display_week);
 
                             updated_matchups.push(updated_league)
                         } catch (err) {

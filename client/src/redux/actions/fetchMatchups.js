@@ -41,45 +41,33 @@ export const fetchMatchups = () => {
                             ) {
                                 if (
                                     key_week + 1 < display_week
-                                    && league[key]?.find(m => m.players?.length > 0 && m.points === 0)
+                                    || (
+                                        key_week + 1 === parseInt(display_week)
+                                        && (
+                                            new Date().getDay() >= 3
+                                            || (new Date().getDay() === 2 && new Date().getHours() > 18)
+                                        )
+                                    )
+                                ) {
+                                    if (!league.settings.matchups_final?.includes(key_week.toString())) {
+                                        league_matchups_to_update.push(key)
+                                    }
+                                } else if (
+                                    key_week === display_week
+                                    && (
+                                        !(
+                                            league.settings.current_matchups_update > new Date().getTime() - 6 * 60 * 60 * 1000
+                                        ) || (
+                                            state.main.schedule[display_week].find(g => parseInt(g.gameSecondsRemaining) > 0 && parseInt(g.gameSecondsRemaining) < 3600)
+                                            && !(league.settings.current_matchups_update > new Date().getTime() - 15 * 60 * 1000)
+                                        ) || (
+                                            state.main.schedule[display_week].find(g => parseInt(g.gameSecondsRemaining) === 0)
+                                            && !(league.settings.current_matchups_update > new Date().getTime() - 3.5 * 60 * 60 * 1000)
+                                        )
+                                    )
                                 ) {
                                     league_matchups_to_update.push(key)
-                                } else if (key_week + 1 === display_week) {
-                                    if ((
-                                        league.settings.league_average_match === 0
-                                        && games < display_week - start_week
-                                    ) || (
-                                            league.settings.league_average_match === 1
-                                            && games < (display_week - start_week) * 2
-                                        )) {
-                                        league_matchups_to_update.push(key)
-                                    }
-                                    const mismatches = league.rosters
-                                        .filter(roster => {
-                                            const pts_from_matchups = (
-                                                Array.from(Array(display_week - start_week).keys()).map(key => key + start_week))
-                                                .reduce((acc, cur) => acc + (league[`matchups_${cur}`]?.find(m => m.roster_id === roster.roster_id)?.points || 0), 0)
-
-                                            if (roster.settings.fpts > pts_from_matchups) {
-                                                console.log({
-                                                    league: league.name,
-                                                    pts_from_matchups: pts_from_matchups,
-                                                    fpts: roster.settings.fpts,
-                                                    delta: Math.abs(Math.floor(pts_from_matchups) - roster.settings.fpts),
-                                                    roster_id: roster.roster_id
-                                                })
-                                            }
-
-                                            return Math.floor(pts_from_matchups) !== roster.settings.fpts
-
-                                        })
-
-                                    if (mismatches?.length > 0) {
-
-                                        league_matchups_to_update.push(key)
-                                    }
-
-                                } else if (key_week >= display_week) {
+                                } else if (key_week > display_week) {
                                     league[key]
                                         ?.forEach(matchup => {
                                             const matching_roster = league.rosters.find(r => r.roster_id === matchup.roster_id)
@@ -105,6 +93,7 @@ export const fetchMatchups = () => {
                     all_matchups_to_update.push({
                         name: league.name,
                         league_id: league.league_id,
+                        settings: league.settings,
                         weeks_to_update: Array.from(new Set(league_matchups_to_update))
                     })
                 }
@@ -115,7 +104,8 @@ export const fetchMatchups = () => {
                 dispatch({ type: 'FETCH_MATCHUPS_START' });
                 console.log({ all_matchups_to_update })
                 const matchups = await axios.post('/league/matchups', {
-                    all_matchups_to_update: all_matchups_to_update
+                    all_matchups_to_update: all_matchups_to_update,
+                    display_week: display_week
                 })
 
                 dispatch({ type: 'FETCH_MATCHUPS_SUCCESS', payload: matchups.data });
