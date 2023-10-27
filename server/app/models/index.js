@@ -3,7 +3,7 @@ const dbConfig = require("../config/db.config");
 
 const Sequelize = require("sequelize");
 
-const ssl = process.env.HEROKU ? { rejectUnauthorized: false } : false
+const ssl = process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 
 const sequelize = new Sequelize(dbConfig.DATABASE_URL, {
     dialect: 'postgres',

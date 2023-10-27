@@ -82,7 +82,7 @@ module.exports = async (app) => {
         console.log(`Update Complete`)
     }
 
-    if (process.env.DATABASE_URL) {
+    if (process.env.HEROKU) {
         await getDailyValues()
 
         setInterval(async () => {

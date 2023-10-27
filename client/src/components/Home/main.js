@@ -95,13 +95,13 @@ const Main = () => {
         if (leagues) {
             dispatch(fetchFilteredData(leagues, tab, state.league_season));
 
-            if (!matchups) {
+            if (['lineups', 'leagues'].includes(tab) && !matchups && !isLoadingMatchups) {
                 dispatch(fetchMatchups())
             }
         }
 
 
-    }, [leagues, tab, state, matchups, dispatch])
+    }, [leagues, tab, state, matchups, isLoadingMatchups, dispatch])
 
     const weeks = Array.from(Array(18).keys()).map(key => key + 1)
         .filter(key => {

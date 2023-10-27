@@ -196,24 +196,29 @@ exports.matchups = async (req, res) => {
 
     const updated_matchups = [];
 
-    try {
-        await Promise.all(league_matchups
-            .map(async league_matchup => {
+    const batchSize = 20;
 
-                try {
-                    const updated_league = await updateLeagueMatchups(league_matchup);
+    for (let i = 0; i < league_matchups.length; i += batchSize) {
+        try {
+            await Promise.all(
+                league_matchups
+                    .slice(i, i + batchSize)
+                    .map(async league_matchup => {
 
-                    updated_matchups.push(updated_league)
-                } catch (err) {
-                    console.log(err.message)
-                }
-            }))
+                        try {
+                            const updated_league = await updateLeagueMatchups(league_matchup);
 
-    } catch (err) {
-        console.log(err.message)
+                            updated_matchups.push(updated_league)
+                        } catch (err) {
+                            console.log(err.message)
+                        }
+                    }))
+
+        } catch (err) {
+            console.log(err.message)
+        }
+
     }
-
-
     res.send(updated_matchups)
 }
 

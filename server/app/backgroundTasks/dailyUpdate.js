@@ -8,7 +8,7 @@ module.exports = async (app) => {
     setTimeout(async () => {
         await getState(app);
 
-        if (process.env.DATABASE_URL) {
+        if (process.env.HEROKU) {
             await getAllPlayers();
             await getSchedule();
         }
@@ -25,7 +25,7 @@ module.exports = async (app) => {
         setInterval(async () => {
             console.log('Daily update starting...')
 
-            if (process.env.DATABASE_URL) {
+            if (process.env.HEROKU) {
                 await getAllPlayers();
                 await getSchedule();
             }
