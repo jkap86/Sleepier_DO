@@ -72,6 +72,19 @@ module.exports = (app) => {
         res.send(data)
     })
 
+    router.get('/logs/:date', (req, res) => {
+        const logs = fs.readFileSync('./logs.json')
+
+        const logs_to_send = JSON.parse(logs)
+            .filter(l =>
+                req.params.date.toLowerCase() === 'all'
+                || req.params.date === l.timestamp.split(',')[0].replace(/[^0-9]/g, '')
+            )
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+        res.send(logs_to_send)
+    })
+
     app.use('/main', router);
 }
 
