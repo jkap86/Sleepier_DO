@@ -32,7 +32,7 @@ const Trade = ({
                     && value.date <= date
                     && value.type === type
             )
-            .sort((a, b) => b.date - a.date)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
         [0]?.value
         return value || 0
     }
