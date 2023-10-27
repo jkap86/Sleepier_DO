@@ -22,7 +22,18 @@ const Trade = ({
 
     const getTradeValue = (player_id, date, type) => {
 
-        const value = values.find(value => (value.player_id === player_id || value.player_id.includes(player_id)) && value.date === date && value.type === type)?.value
+        const value = values
+            .filter(
+                value => (
+                    value.player_id === player_id
+                    || value.player_id
+                        .includes(player_id)
+                )
+                    && value.date <= date
+                    && value.type === type
+            )
+            .sort((a, b) => b.date - a.date)
+        [0]?.value
         return value || 0
     }
 
@@ -167,9 +178,9 @@ const Trade = ({
                                                 .map(pick => {
                                                     const ktc_name = getKtcPickName(pick)
 
-                                                    const value = values.find(value => value.player_id.includes(ktc_name) && value.date === date && value.type === type)?.value
+                                                    const value = getTradeValue(ktc_name, date, type)
 
-                                                    const trade_value = values.find(value => value.player_id.includes(ktc_name) && value.date === trade_date && value.type === type)?.value
+                                                    const trade_value = getTradeValue(ktc_name, trade_date, type)
 
                                                     const trend = (value || 0) - (trade_value || 0)
                                                     return <tr>
