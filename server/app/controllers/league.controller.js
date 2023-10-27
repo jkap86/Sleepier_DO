@@ -32,11 +32,12 @@ exports.find = async (req, res) => {
             console.log(error)
         }
 
-        const index = leagues_db?.findIndex(l_db => l_db.updatedAt < cutoff)
-
         const leagues_to_add = leagues.filter(l => !leagues_db?.find(l_db => l.league_id === l_db.league_id))
-        const leagues_to_update = index >= 0 && leagues_db?.splice(index, leagues_db.length - index) || []
-        const leagues_up_to_date = leagues_db || []
+
+        const leagues_to_update = leagues_db.filter(l => l.updatedAt < cutoff || (Array.isArray(l.rosters) && l.rosters?.length === 0))
+
+        const leagues_up_to_date = leagues_db.filter(l => !leagues_to_update.find(l2 => l.league_id === l2.league_id))
+
 
         console.log(leagues_to_add.length + ' new leagues')
         console.log(leagues_to_update.length + ' to update leagues')
@@ -146,9 +147,11 @@ exports.find = async (req, res) => {
 }
 
 const updateLeagueMatchups = async (league_matchup) => {
-    let updated_rosters = [];
+    let updated_rosters;
 
     try {
+        updated_rosters = []
+
         const league_db = await League.findByPk(league_matchup.league_id, { raw: true });
         const rosters = await axios.get(`https://api.sleeper.app/v1/league/${league_matchup.league_id}/rosters`);
 
@@ -167,27 +170,31 @@ const updateLeagueMatchups = async (league_matchup) => {
         console.log(err.message);
     }
 
-    const weeks_to_update = league_matchup.weeks_to_update
-    let updated_league_matchups = {};
+    if (updated_rosters) {
+        const weeks_to_update = league_matchup.weeks_to_update
+        let updated_league_matchups = {};
 
-    for (const week_key of weeks_to_update) {
-        const week = week_key.split('_')[1]
-        try {
-            const matchup_week = await axios.get(`https://api.sleeper.app/v1/league/${league_matchup.league_id}/matchups/${week}`)
-            updated_league_matchups[week_key] = matchup_week.data
-        } catch (err) {
-            console.log(err.message)
+        for (const week_key of weeks_to_update) {
+            const week = week_key.split('_')[1]
+            try {
+                const matchup_week = await axios.get(`https://api.sleeper.app/v1/league/${league_matchup.league_id}/matchups/${week}`)
+                updated_league_matchups[week_key] = matchup_week.data
+            } catch (err) {
+                console.log(err.message)
+            }
         }
-    }
-    const updated_league = {
-        league_id: league_matchup.league_id,
-        rosters: updated_rosters,
-        ...updated_league_matchups
-    }
+        const updated_league = {
+            league_id: league_matchup.league_id,
+            rosters: updated_rosters,
+            ...updated_league_matchups
+        }
 
-    await League.upsert({ ...updated_league })
+        await League.upsert({ ...updated_league })
 
-    return updated_league;
+        return updated_league;
+    } else {
+        return
+    }
 }
 
 exports.matchups = async (req, res) => {
