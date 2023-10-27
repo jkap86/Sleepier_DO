@@ -27,6 +27,8 @@ module.exports = async (app) => {
 
         console.log(`Beginning daily rankings update at ${new Date()}`)
 
+        const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
+
         const stateAllPlayers = fs.readFileSync('./allplayers.json', 'utf-8')
 
         let ktc;
@@ -38,15 +40,13 @@ module.exports = async (app) => {
 
         const new_values = []
 
-        ktc.data.forEach(ktc_player => {
+        ktc.data.forEach((ktc_player, index) => {
+            console.log({ index });
             const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
 
             if (sleeper_id) {
                 const date = getUTCDate(new Date(ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1].d))
                 const sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1].v
-
-                const date2 = getUTCDate(new Date(ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].d))
-                const oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].v
 
                 new_values.push({
                     date: date,
@@ -55,6 +55,30 @@ module.exports = async (app) => {
                     value: sf
                 })
 
+                let prev_date = getUTCDate(new Date(new Date(date) - 24 * 60 * 60 * 1000));
+
+                while (!JSON.parse(playervalues_json).find(p => p.date === prev_date && p.type === 'sf')) {
+                    console.log({ prev_date })
+
+                    const prev = ktc_player.superflexValueHistory.find(h => getUTCDate(new Date(h.d)) === prev_date)
+
+                    if (prev) {
+                        new_values.push({
+                            date: prev_date,
+                            type: 'sf',
+                            player_id: sleeper_id,
+                            value: prev.v
+                        })
+                    }
+
+                    prev_date = getUTCDate(new Date(new Date(prev_date) - 24 * 60 * 60 * 1000));
+                }
+
+
+                const date2 = getUTCDate(new Date(ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].d))
+                const oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].v
+
+
                 new_values.push({
                     date: date2,
                     type: 'oneqb',
@@ -62,10 +86,29 @@ module.exports = async (app) => {
                     value: oneqb
                 })
 
+                let prev_date2 = getUTCDate(new Date(new Date(date2) - 24 * 60 * 60 * 1000));
+
+                while (!JSON.parse(playervalues_json).find(p => p.date === prev_date2 && p.type === 'oneqb')) {
+                    console.log({ prev_date2 })
+
+                    const prev = ktc_player.oneQBValueHistory.find(h => getUTCDate(new Date(h.d)) === prev_date2)
+
+                    if (prev) {
+                        new_values.push({
+                            date: prev_date2,
+                            type: 'oneqb',
+                            player_id: sleeper_id,
+                            value: prev.v
+                        })
+                    }
+
+                    prev_date2 = getUTCDate(new Date(new Date(prev_date) - 24 * 60 * 60 * 1000));
+                }
+
             }
         })
 
-        const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
+
 
         const data = [
             ...JSON.parse(playervalues_json)
@@ -74,7 +117,13 @@ module.exports = async (app) => {
         ]
 
         try {
-            fs.writeFileSync('./playervalues.json', JSON.stringify(data))
+            fs.writeFile('./playervalues.json', JSON.stringify(data), (err) => {
+                if (err) {
+                    console.log(err.message)
+                } else {
+                    console.log('player values file updated...')
+                }
+            })
         } catch (error) {
             console.log(error)
         }
@@ -82,7 +131,7 @@ module.exports = async (app) => {
         console.log(`Update Complete`)
     }
 
-    if (process.env.DATABASE_URL) {
+    if (!process.env.DATABASE_URL) {
         await getDailyValues()
 
         setInterval(async () => {
