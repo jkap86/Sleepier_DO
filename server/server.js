@@ -19,6 +19,7 @@ function start() {
     const cors = require('cors');
     const compression = require('compression');
     const path = require('path');
+    const { logVisits } = require('./app/helpers/logVisits');
 
     const app = express();
 
@@ -29,6 +30,7 @@ function start() {
     app.use(express.json({ limit: '50mb' }));
     app.use(express.static(path.resolve(__dirname, '../client/build')));
 
+    app.use(logVisits);
 
     const db = require('./app/models');
     db.sequelize.sync({ alter: true })
