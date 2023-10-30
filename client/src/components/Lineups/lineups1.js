@@ -1,4 +1,5 @@
 import LineupsData from "./lineupsData";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { positionFilterIcon, teamFilterIcon, draftClassFilterIcon } from "../../functions/filterIcons";
 import TableMain from "../View/tableMain";
@@ -31,12 +32,24 @@ const Lineups1 = () => {
         playerLineupDict,
         primaryContent,
         sortBy,
-        filters
+        filters,
+        secondaryContent1,
+        secondaryContent2
     } = useSelector(state => state.lineups);
 
 
 
     const hash = `${includeTaxi}-${includeLocked}`
+
+    useEffect(() => {
+        if (itemActive) {
+            if (secondaryContent1 === 'Optimal' || secondaryContent2 === 'Optimal') {
+                dispatch(setState({ includeLocked: false }, 'LINEUPS'))
+            }
+        } else {
+            dispatch(setState({ includeLocked: true }, 'LINEUPS'))
+        }
+    }, [dispatch, secondaryContent1, secondaryContent2, itemActive])
 
     const projectedRecord = week >= state.week
         ? filterLeagues((leagues || []), type1, type2)
@@ -148,12 +161,16 @@ const Lineups1 = () => {
             switch (header) {
                 case 'Proj FP':
                     return {
-                        text: act_proj?.toFixed(2),
+                        text: league.settings.best_ball === 1
+                            ? opt_proj?.toFixed(2)
+                            : act_proj?.toFixed(2),
                         colSpan: 2
                     }
                 case 'Proj FPA':
                     return {
-                        text: opp_act_proj?.toFixed(2),
+                        text: league.settings.best_ball === 1
+                            ? opp_opt_proj?.toFixed(2)
+                            : opp_act_proj?.toFixed(2),
                         colSpan: 2
                     }
                 case 'Proj FP (Opt)':

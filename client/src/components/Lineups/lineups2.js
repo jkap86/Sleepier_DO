@@ -5,6 +5,7 @@ import { setState } from "../../redux/actions/state";
 import { matchTeam } from "../../functions/misc";
 import { syncLeague } from "../../redux/actions/fetchUser";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
+import { useEffect } from "react";
 
 
 const Lineups2 = ({
@@ -35,12 +36,26 @@ const Lineups2 = ({
         rankings,
         secondaryContent1,
         secondaryContent2,
+        itemActive,
         itemActive2,
         page2_start,
         page2_bench,
         page2_start_opp,
         page2_bench_opp
     } = useSelector(state => state.lineups);
+
+
+    useEffect(() => {
+        if (league.settings.best_ball === 1) {
+            dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))
+            dispatch(setState({ secondaryContent2: 'Optimal' }, 'LINEUPS'))
+        } else {
+            dispatch(setState({ secondaryContent1: 'Lineup' }, 'LINEUPS'))
+            dispatch(setState({ secondaryContent2: 'Lineup' }, 'LINEUPS'))
+        }
+    }, [league, dispatch])
+
+
 
     const handleSync = (league_id) => {
         dispatch(setState({ syncing: { league_id: league_id, week: week } }, 'USER'))
@@ -71,14 +86,17 @@ const Lineups2 = ({
 
     const active_player = lineup_check?.find(x => `${x.slot}_${x.index}` === itemActive2)?.current_player
 
+    const opt_points = optimal_lineup.reduce((acc, cur) => acc + matchup_user.players_points[cur.player], 0)
+
     const lineup_headers = [
         [
             {
                 text: (
                     secondaryContent1 === 'Lineup'
-                        ? proj_score_user_actual?.toFixed(2)
+                        ? <>{matchup_user?.points} <em>({proj_score_user_actual?.toFixed(2)})</em></>
                         : secondaryContent1 === 'Optimal'
-                            ? proj_score_user_optimal?.toFixed(2)
+                            ? <>{opt_points?.toFixed(2)} <em>({proj_score_user_optimal?.toFixed(2)})</em></>
+
                             : ''
                 ),
                 colSpan: 23,
@@ -208,14 +226,18 @@ const Lineups2 = ({
             }
         })
 
+    const opp_opt_points = optimal_lineup_opp.reduce((acc, cur) => acc + (matchup_opp.players_points[cur.player] || 0), 0)
+
     const subs_headers = [
         [
             {
                 text: (
                     secondaryContent2 === 'Lineup'
-                        ? proj_score_opp_actual?.toFixed(2)
+                        ? <>{matchup_opp?.points} <em>({proj_score_opp_actual?.toFixed(2)})</em></>
+
                         : secondaryContent2 === 'Optimal'
-                            ? proj_score_opp_optimal?.toFixed(2)
+                            ? <>{opp_opt_points.toFixed(2)} <em>({proj_score_opp_optimal?.toFixed(2)})</em></>
+
                             : ''
                 ),
                 colSpan: 23,
@@ -356,7 +378,7 @@ const Lineups2 = ({
                             colSpan: 3
                         },
                         {
-                            text: matchup_opp?.players_points[opp_starter.player || opp_starter].toFixed(1),
+                            text: matchup_opp?.players_points[opp_starter.player || opp_starter]?.toFixed(1),
                             colSpan: 4
                         }
                     ]
@@ -491,6 +513,7 @@ const Lineups2 = ({
                         <button
                             className={secondaryContent1 === 'Lineup' ? 'active click' : 'click'}
                             onClick={() => dispatch(setState({ secondaryContent1: 'Lineup' }, 'LINEUPS'))}
+                            style={{ opacity: league.settings.best_ball === 1 ? 0 : 1 }}
                         >
                             Lineup
                         </button>
@@ -522,6 +545,7 @@ const Lineups2 = ({
                                     <button
                                         className={secondaryContent2 === 'Lineup' ? 'active click' : 'click'}
                                         onClick={() => dispatch(setState({ secondaryContent2: 'Lineup' }, 'LINEUPS'))}
+                                        style={{ opacity: league.settings.best_ball === 1 ? 0 : 1 }}
                                     >
                                         Lineup
                                     </button>
