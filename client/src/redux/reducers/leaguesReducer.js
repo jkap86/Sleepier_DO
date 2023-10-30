@@ -4,8 +4,7 @@ const initialState = {
     page: 1,
     page2: 1,
     searched: '',
-    recordType: 'Record',
-    lineupType: 'Players'
+    recordType: 'Record'
 };
 
 const leaguesReducer = (state = initialState, action) => {

@@ -3,6 +3,7 @@ const initialState = {
     trendDateEnd: new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
     itemActive: '',
     itemActive2: '',
+    itemActive3: '',
     page: 1,
     page2: 1,
     searched: '',
@@ -23,7 +24,8 @@ const initialState = {
     },
     tab: {
         secondary: 'Owned'
-    }
+    },
+    lineupType: 'Players'
 };
 
 const playersReducer = (state = initialState, action) => {

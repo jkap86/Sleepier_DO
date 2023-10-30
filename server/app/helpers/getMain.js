@@ -56,13 +56,15 @@ const getSchedule = async () => {
     let schedule;
 
     let nflschedule
+    let nflSchedule_week
     try {
         nflschedule = await axios.get(`https://api.myfantasyleague.com/2023/export?TYPE=nflSchedule&W=ALL&JSON=1`)
+        nflSchedule_week = await axios.get(`https://api.myfantasyleague.com/2023/export?TYPE=nflSchedule&W=&JSON=1`)
     } catch (err) {
         console.log(err.message)
     }
     schedule = Object.fromEntries(
-        nflschedule.data.fullNflSchedule.nflSchedule
+        [...nflschedule.data.fullNflSchedule.nflSchedule, nflSchedule_week.data.nflSchedule]
             .map(matchups_week => {
                 return [matchups_week.week, matchups_week.matchup]
             })
@@ -87,7 +89,7 @@ const getSchedule = async () => {
     if (games_in_progress) {
         const min = new Date().getMinutes()
 
-        delay = ((min % 15) * 60 * 1000) + 1
+        delay = ((min % 4) * 60 * 1000) + 60000
     } else {
 
         const next_kickoff = Math.min(...Object.keys(schedule)

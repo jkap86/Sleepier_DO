@@ -1,7 +1,7 @@
 
 const initialState = {
     isLoadingData: false,
-    filteredData: [],
+    filteredData: false,
     filteredLeagueCount: 0
 };
 

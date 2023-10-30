@@ -3,7 +3,7 @@ const initialState = {
     username: '',
     avatar: null,
     leagues: false,
-    lmplayershares: [],
+    lmplayershares: false,
     matchups: false,
     progress: 0,
     isLoadingUser: false,
