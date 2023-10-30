@@ -23,18 +23,20 @@ const Trade = ({
     const getTradeValue = (player_id, date, type) => {
 
         const value = values
-            .filter(
+            .find(
                 value => (
                     value.player_id === player_id
                     || value.player_id
                         .includes(player_id)
                 )
-                    && value.date <= date
+                    && (
+                        parseInt(value.date.split('-')[0]) === parseInt(date.split('-')[0])
+                        && parseInt(value.date.split('-')[1]) === parseInt(date.split('-')[1])
+                        && parseInt(value.date.split('-')[2]) === parseInt(date.split('-')[2])
+                    )
                     && value.type === type
             )
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-        [0]?.value
-        return value || 0
+        return value?.value || 0
     }
 
     const getKtcPickName = (pick) => {
@@ -139,13 +141,43 @@ const Trade = ({
 
                                                 const value = getTradeValue(player_id, date, type)
 
-
-
-
-
                                                 const trade_value = getTradeValue(player_id, trade_date, type)
 
                                                 const trend = (value || 0) - (trade_value || 0)
+
+                                                const z = values
+                                                    .find(
+                                                        value => (
+                                                            value.player_id === player_id
+                                                            || value.player_id
+                                                                .includes(player_id)
+                                                        )
+                                                            && (
+                                                                parseInt(value.date.split('-')[0]) === parseInt(date.split('-')[0])
+                                                                && parseInt(value.date.split('-')[1]) === parseInt(date.split('-')[1])
+                                                                && parseInt(value.date.split('-')[2]) === parseInt(date.split('-')[2])
+                                                            )
+                                                            && value.type === type
+                                                    )
+
+                                                const z2 = values
+                                                    .find(
+                                                        value => (
+                                                            value.player_id === player_id
+                                                            || value.player_id
+                                                                .includes(player_id)
+                                                        )
+                                                            && (
+                                                                parseInt(value.date.split('-')[0]) === parseInt(trade_date.split('-')[0])
+                                                                && parseInt(value.date.split('-')[1]) === parseInt(trade_date.split('-')[1])
+                                                                && parseInt(value.date.split('-')[2]) === parseInt(trade_date.split('-')[2])
+                                                            )
+                                                            && value.type === type
+                                                    )
+
+                                                const x = value
+                                                const y = trade_value
+
                                                 return <tr>
                                                     <td colSpan={11} className={
                                                         `${trade.tips?.trade_away && trade.tips?.trade_away?.find(p => p.player_id === player_id)?.manager.user_id === rid
