@@ -46,7 +46,7 @@ const Lineups2 = ({
 
     console.log({ proj_score_user_optimal })
     useEffect(() => {
-        if (league.settings.best_ball === 1) {
+        if (league?.settings?.best_ball === 1) {
             dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))
             dispatch(setState({ secondaryContent2: 'Optimal' }, 'LINEUPS'))
         } else {
