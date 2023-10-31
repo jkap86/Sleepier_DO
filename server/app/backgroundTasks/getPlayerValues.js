@@ -27,6 +27,7 @@ module.exports = async (app) => {
 
         console.log(`Beginning daily rankings update at ${new Date()}`)
 
+
         const stateAllPlayers = fs.readFileSync('./allplayers.json', 'utf-8')
 
         let ktc;
@@ -42,28 +43,45 @@ module.exports = async (app) => {
             const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
 
             if (sleeper_id) {
-                const date = getUTCDate(new Date(ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1].d))
-                const sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1].v
+                let player_sf, player_oneqb;
 
-                const date2 = getUTCDate(new Date(ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].d))
-                const oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1].v
+                if (process.env.KTC_DAY) {
+                    player_sf = ktc_player.superflexValueHistory.find(p => p.d === process.env.KTC_DAY)
+                    player_oneqb = ktc_player.oneQBValueHistory.find(p => p.d === process.env.KTC_DAY)
+                } else {
+                    player_sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1]
+                    player_oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1]
+                }
 
-                new_values.push({
-                    date: date,
-                    type: 'sf',
-                    player_id: sleeper_id,
-                    value: sf
-                })
+                if (player_sf) {
+                    const date = getUTCDate(new Date(player_sf.d))
+                    const sf = player_sf.v
 
-                new_values.push({
-                    date: date2,
-                    type: 'oneqb',
-                    player_id: sleeper_id,
-                    value: oneqb
-                })
+                    new_values.push({
+                        date: date,
+                        type: 'sf',
+                        player_id: sleeper_id,
+                        value: sf
+                    })
+                }
 
+                if (player_oneqb) {
+                    const date2 = getUTCDate(new Date(player_oneqb.d))
+                    const oneqb = player_oneqb.v
+
+                    new_values.push({
+                        date: date2,
+                        type: 'oneqb',
+                        player_id: sleeper_id,
+                        value: oneqb
+                    })
+                }
             }
         })
+
+        const dates_updated = Array.from(new Set(new_values.map(nv => nv.date)))
+
+        console.log({ dates_updated })
 
         const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
 
