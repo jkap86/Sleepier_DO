@@ -231,7 +231,7 @@ export const getRecordDict = ({ week_to_fetch, state, leagues, allplayers, sched
                 .reduce((acc, cur) => acc + (players_projections || {})[cur], 0),
             proj_score_optimal: Object.keys(players_projections || {})
                 .filter(player_id => optimalPlayers?.includes(player_id))
-                .reduce((acc, cur) => acc + (players_projections || {})[cur], 0)
+                .reduce((acc, cur) => acc + ((players_projections || {})[cur] || 0), 0)
 
         }
     }

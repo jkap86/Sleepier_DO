@@ -44,7 +44,7 @@ const Lineups2 = ({
         page2_bench_opp
     } = useSelector(state => state.lineups);
 
-
+    console.log({ proj_score_user_optimal })
     useEffect(() => {
         if (league.settings.best_ball === 1) {
             dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))
@@ -469,14 +469,57 @@ const Lineups2 = ({
         ? week < state.week
             ? <>
                 <div className="secondary nav">
-
+                    <div>
+                        <button
+                            className={secondaryContent1 === 'Lineup' ? 'active click' : 'click'}
+                            onClick={() => dispatch(setState({ secondaryContent1: 'Lineup' }, 'LINEUPS'))}
+                            style={{ opacity: league.settings.best_ball === 1 ? 0 : 1 }}
+                        >
+                            Lineup
+                        </button>
+                        <p className="username">{username}</p>
+                        <button
+                            className={secondaryContent1 === 'Optimal' ? 'active click' : 'click'}
+                            onClick={() => dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))}
+                        >
+                            Optimal
+                        </button>
+                    </div>
                     <button
                         className={`sync ${syncing ? 'rotate' : 'click'}`}
                         onClick={syncing ? null : () => handleSync(league.league_id)}
                     >
                         <i className={`fa-solid fa-arrows-rotate ${syncing ? 'rotate' : ''}`}></i>
                     </button>
+                    <div >
+                        {
+                            itemActive2
+                                ? <button
+                                    className={'active click'}
+                                    onClick={() => dispatch(setState({ itemActive2: '' }, 'LINEUPS'))}
+                                >
+                                    Options
+                                </button>
+                                : <>
 
+                                    <button
+                                        className={secondaryContent2 === 'Lineup' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent2: 'Lineup' }, 'LINEUPS'))}
+                                        style={{ opacity: league.settings.best_ball === 1 ? 0 : 1 }}
+                                    >
+                                        Lineup
+                                    </button>
+                                    <p className="username">{oppRoster?.username}</p>
+                                    <button
+                                        className={secondaryContent2 === 'Optimal' ? 'active click' : 'click'}
+                                        onClick={() => dispatch(setState({ secondaryContent2: 'Optimal' }, 'LINEUPS'))}
+                                    >
+                                        Optimal
+                                    </button>
+                                </>
+                        }
+
+                    </div>
                 </div>
                 {
                     <>
@@ -491,6 +534,11 @@ const Lineups2 = ({
                             previous={true}
                             players_projections={players_projections}
                             players_points={matchup_user?.players_points}
+                            total_points={
+                                secondaryContent1 === 'Lineup'
+                                    ? matchup_user.points
+                                    : proj_score_user_optimal
+                            }
                         />
                         <Roster
                             league={league}
@@ -503,6 +551,11 @@ const Lineups2 = ({
                             previous={true}
                             players_projections={players_projections}
                             players_points={matchup_opp?.players_points}
+                            total_points={
+                                secondaryContent2 === 'Lineup'
+                                    ? matchup_opp.points
+                                    : proj_score_opp_optimal
+                            }
                         />
                     </>
                 }

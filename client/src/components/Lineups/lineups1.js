@@ -377,6 +377,7 @@ const Lineups1 = () => {
         const proj_score_user_actual = lineupChecks[week]?.[league_id]?.lc_user?.proj_score_actual;
         const proj_score_opp_actual = lineupChecks[week]?.[league_id]?.lc_opp?.proj_score_actual;
 
+
         const bench_points = matchup_user?.players
             ?.filter(player_id => !matchup_user.starters.includes(player_id))
             ?.reduce((acc, cur) => acc + matchup_user.players_points[cur], 0)
@@ -678,6 +679,9 @@ const Lineups1 = () => {
 
                 const act_median = lc_league?.act_median
 
+                const proj_score_user_optimal = lc_league?.lc_user?.proj_score_optimal;
+
+                const proj_score_opp_optimal = lc_league?.lc_opp?.proj_score_optimal;
                 return {
                     id: league.league_id,
                     search: {
@@ -749,6 +753,8 @@ const Lineups1 = () => {
                             matchup_user={matchup_user}
                             matchup_opp={matchup_opp}
                             players_projections={players_projections}
+                            proj_score_user_optimal={proj_score_user_optimal}
+                            proj_score_opp_optimal={proj_score_opp_optimal}
                         />
                     )
                 }

@@ -8,7 +8,8 @@ const Roster = ({
     type,
     previous,
     players_projections,
-    players_points
+    players_points,
+    total_points
 }) => {
     const [filter, setFilter] = useState('All');
     const [ppgType, setPpgType] = useState('Total')
@@ -29,7 +30,7 @@ const Roster = ({
                 className: 'half'
             },
             {
-                text: roster.username,
+                text: total_points?.toFixed(2),
                 colSpan: 15,
                 className: 'half'
             },
