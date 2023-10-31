@@ -86,7 +86,7 @@ const Lineups2 = ({
 
     const active_player = lineup_check?.find(x => `${x.slot}_${x.index}` === itemActive2)?.current_player
 
-    const opt_points = optimal_lineup.reduce((acc, cur) => acc + matchup_user.players_points[cur.player], 0)
+    const opt_points = optimal_lineup?.reduce((acc, cur) => acc + matchup_user.players_points[cur.player], 0)
 
     const lineup_headers = [
         [
@@ -226,7 +226,7 @@ const Lineups2 = ({
             }
         })
 
-    const opp_opt_points = optimal_lineup_opp.reduce((acc, cur) => acc + (matchup_opp.players_points[cur.player] || 0), 0)
+    const opp_opt_points = optimal_lineup_opp?.reduce((acc, cur) => acc + (matchup_opp.players_points[cur.player] || 0), 0)
 
     const subs_headers = [
         [
@@ -236,7 +236,7 @@ const Lineups2 = ({
                         ? <>{matchup_opp?.points} <em>({proj_score_opp_actual?.toFixed(2)})</em></>
 
                         : secondaryContent2 === 'Optimal'
-                            ? <>{opp_opt_points.toFixed(2)} <em>({proj_score_opp_optimal?.toFixed(2)})</em></>
+                            ? <>{opp_opt_points?.toFixed(2)} <em>({proj_score_opp_optimal?.toFixed(2)})</em></>
 
                             : ''
                 ),
@@ -389,7 +389,7 @@ const Lineups2 = ({
                     id: opp_starter,
                     list: [
                         {
-                            text: lineup_check_opp[index]?.slot,
+                            text: lineup_check_opp?.[index]?.slot,
                             colSpan: 3
                         },
                         {
