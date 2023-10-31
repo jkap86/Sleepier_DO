@@ -244,6 +244,36 @@ select.active {
   background-color: var(--color4);
 }
 
+td.type {
+  color: var(--te);
+  font-family: var(--font2);
+  font-size: 75%;
+}
+
+input[type="date"] {
+  background-color: transparent;
+  font-size: 3rem;
+  font-family: var(--font2);
+  color: var(--te);
+  position: relative;
+  border: none;
+  text-align: center;
+
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  z-index: 1;
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  height: 100%;
+}
+
+div.date {
+  font-size: 3rem;
+  color: var(--te);
+}
+
 ::-webkit-scrollbar {
   background-color: transparent;
   width: 1rem;

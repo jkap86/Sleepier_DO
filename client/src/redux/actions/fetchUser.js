@@ -195,18 +195,18 @@ export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
     }
 }
 
-export const fetchLmTrades = (user_id, leagues, season, offset, limit, type1, type2) => {
+export const fetchLmTrades = (user_id, leagues, season, offset, limit, hash, trade_date) => {
     return async (dispatch) => {
         dispatch({ type: 'FETCH_TRADES_START' });
 
         try {
-            const hash = `${type1}_${type2}`
             const trades = await axios.post('/trade/leaguemate', {
                 user_id: user_id,
                 offset: offset,
                 limit: limit,
-                type1: type1,
-                type2: type2
+                type1: hash.split('-')[0],
+                type2: hash.split('-')[1],
+                trade_date: trade_date
             })
 
             console.log({ trades })
@@ -214,11 +214,13 @@ export const fetchLmTrades = (user_id, leagues, season, offset, limit, type1, ty
 
             const trades_tips = getTradeTips(trades.data.rows, leagues, season)
 
+            console.log({ hash })
+
             dispatch({
                 type: 'FETCH_LMTRADES_SUCCESS', payload: {
                     count: trades.data.count,
                     trades: trades_tips,
-                    //hash: hash
+                    hash: hash
                 }
             });
         } catch (error) {
@@ -227,7 +229,7 @@ export const fetchLmTrades = (user_id, leagues, season, offset, limit, type1, ty
     }
 }
 
-export const fetchFilteredLmTrades = (searchedPlayerId, searchedManagerId, league_season, offset, limit) => async (dispatch, getState) => {
+export const fetchFilteredLmTrades = (searchedPlayerId, searchedManagerId, league_season, offset, limit, hash, trade_date) => async (dispatch, getState) => {
     dispatch({ type: 'FETCH_TRADES_START' });
 
     const state = getState();
@@ -241,6 +243,9 @@ export const fetchFilteredLmTrades = (searchedPlayerId, searchedManagerId, leagu
             manager: searchedManagerId,
             offset: offset,
             limit: limit,
+            type1: hash.split('-')[0],
+            type2: hash.split('-')[1],
+            trade_date: trade_date
         });
 
         const trades_tips = getTradeTips(trades.data.rows, user.leagues, league_season)
@@ -252,6 +257,7 @@ export const fetchFilteredLmTrades = (searchedPlayerId, searchedManagerId, leagu
                 manager: searchedManagerId,
                 trades: trades_tips,
                 count: trades.data.count,
+                hash: hash
             },
         });
     } catch (error) {

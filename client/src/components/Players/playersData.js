@@ -20,7 +20,7 @@ const PlayersData = () => {
         }
     }, [user_id, lmplayershares, dispatch])
 
-    return <> </>
+    return <></>
 }
 
 export default PlayersData;

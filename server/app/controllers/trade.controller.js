@@ -42,7 +42,19 @@ exports.leaguemate = async (req, res) => {
         }
     }
 
+    if (req.body.trade_date) {
+        filters.push({
+            status_updated: {
+                [Op.and]: [
+                    { [Op.lt]: new Date(req.body.trade_date).getTime() },
+                    { [Op.gt]: new Date(new Date(req.body.trade_date) - 30 * 24 * 60 * 60 * 1000).getTime() }
+                ]
+            }
+        })
+    }
+
     let league_filters = [];
+
 
     if (req.body.type1 === 'Dynasty') {
         league_filters.push({

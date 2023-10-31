@@ -33,69 +33,71 @@ module.exports = async (app) => {
         let ktc;
         try {
             ktc = await axios.post('https://keeptradecut.com/dynasty-rankings/histories')
-        } catch (err) {
-            console.log(err)
-        }
 
-        const new_values = []
+            const new_values = []
 
-        ktc.data.forEach(ktc_player => {
-            const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
+            ktc.data.forEach(ktc_player => {
+                const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
 
-            if (sleeper_id) {
-                let player_sf, player_oneqb;
+                if (sleeper_id) {
+                    let player_sf, player_oneqb;
 
-                if (process.env.KTC_DAY) {
-                    player_sf = ktc_player.superflexValueHistory.find(p => p.d === process.env.KTC_DAY)
-                    player_oneqb = ktc_player.oneQBValueHistory.find(p => p.d === process.env.KTC_DAY)
-                } else {
-                    player_sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1]
-                    player_oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1]
+                    if (process.env.KTC_DAY) {
+                        player_sf = ktc_player.superflexValueHistory.find(p => p.d === process.env.KTC_DAY)
+                        player_oneqb = ktc_player.oneQBValueHistory.find(p => p.d === process.env.KTC_DAY)
+                    } else {
+                        player_sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1]
+                        player_oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1]
+                    }
+
+                    if (player_sf) {
+                        const date = getUTCDate(new Date(player_sf.d))
+                        const sf = player_sf.v
+
+                        new_values.push({
+                            date: date,
+                            type: 'sf',
+                            player_id: sleeper_id,
+                            value: sf
+                        })
+                    }
+
+                    if (player_oneqb) {
+                        const date2 = getUTCDate(new Date(player_oneqb.d))
+                        const oneqb = player_oneqb.v
+
+                        new_values.push({
+                            date: date2,
+                            type: 'oneqb',
+                            player_id: sleeper_id,
+                            value: oneqb
+                        })
+                    }
                 }
+            })
 
-                if (player_sf) {
-                    const date = getUTCDate(new Date(player_sf.d))
-                    const sf = player_sf.v
+            const dates_updated = Array.from(new Set(new_values.map(nv => nv.date)))
 
-                    new_values.push({
-                        date: date,
-                        type: 'sf',
-                        player_id: sleeper_id,
-                        value: sf
-                    })
-                }
+            console.log({ dates_updated })
 
-                if (player_oneqb) {
-                    const date2 = getUTCDate(new Date(player_oneqb.d))
-                    const oneqb = player_oneqb.v
+            const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
 
-                    new_values.push({
-                        date: date2,
-                        type: 'oneqb',
-                        player_id: sleeper_id,
-                        value: oneqb
-                    })
-                }
+            const data = [
+                ...JSON.parse(playervalues_json)
+                    .filter(x => !new_values.find(y => x.date === y.date && x.type === y.type && x.player_id === y.player_id)),
+                ...new_values
+            ]
+
+            try {
+                fs.writeFileSync('./playervalues.json', JSON.stringify(data))
+            } catch (error) {
+                console.log(error)
             }
-        })
-
-        const dates_updated = Array.from(new Set(new_values.map(nv => nv.date)))
-
-        console.log({ dates_updated })
-
-        const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
-
-        const data = [
-            ...JSON.parse(playervalues_json)
-                .filter(x => !new_values.find(y => x.date === y.date && x.type === y.type && x.player_id === y.player_id)),
-            ...new_values
-        ]
-
-        try {
-            fs.writeFileSync('./playervalues.json', JSON.stringify(data))
-        } catch (error) {
-            console.log(error)
+        } catch (err) {
+            console.log(err.message)
         }
+
+
 
         console.log(`Update Complete`)
     }

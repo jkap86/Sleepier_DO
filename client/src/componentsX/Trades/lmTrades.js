@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import TableMain from '../Home/tableMain';
 import Trade from './trade';
@@ -6,7 +6,7 @@ import TradeInfo from './tradeInfo';
 import { fetchLmTrades, fetchFilteredLmTrades, fetchPV } from '../../redux/actions/fetchUser';
 import { setState } from '../../redux/actions/state';
 import Search from '../Home/search';
-import axios from 'axios';
+
 
 
 const LmTrades = ({
@@ -16,17 +16,24 @@ const LmTrades = ({
 }) => {
     const dispatch = useDispatch();
     const trades = useSelector(state => state.trades);
-    const { state } = useSelector(state => state.main);
+    const { state, type1, type2 } = useSelector(state => state.main);
     const { user_id, leagues } = useSelector(state => state.user);
+    const initialLoadRef = useRef();
 
+    const hash = `${type1}-${type2}`
 
     const tradesDisplay = (!trades.lmTrades.searched_player?.id && !trades.lmTrades.searched_manager?.id)
-        ? trades.lmTrades.trades
+        ? trades.lmTrades.trades?.[hash]?.trades || []
         : (
-            trades.lmTrades.searches?.find(s => s.player === trades.lmTrades.searched_player.id && s.manager === trades.lmTrades.searched_manager.id)?.trades
+            trades.lmTrades.searches
+                ?.find(
+                    s => s.player === trades.lmTrades.searched_player.id
+                        && s.manager === trades.lmTrades.searched_manager.id
+                        && s.hash === hash
+                )?.trades
             || []
         )
-
+    console.log({ trades })
 
 
     useEffect(() => {
@@ -64,14 +71,27 @@ const LmTrades = ({
             }
         }) || []
 
+    useEffect(() => {
+        if (initialLoadRef.current) {
+            dispatch(setState({ lmTrades: { ...trades.lmTrades, page: 1 } }, 'TRADES'))
+        } else {
+            initialLoadRef.current = true
+        }
+    }, [tradesDisplay, dispatch])
+
+
+
     const loadMore = async () => {
         console.log('LOADING MORE')
 
+        dispatch(setState({ lmTrades: { ...trades.lmTrades, page: Math.floor(tradesDisplay.length / 25) + 1 } }, 'TRADES'))
+
         if (trades.lmTrades.searched_player === '' && trades.lmTrades.searched_manager === '') {
-            dispatch(fetchLmTrades(user_id, leagues, state.league_season, trades.lmTrades.trades.length, 125))
+            dispatch(fetchLmTrades(user_id, leagues, state.league_season, trades.lmTrades.trades.length, 125, hash, trades.trade_date))
         } else {
-            dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, tradesDisplay.length, 125))
+            dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, tradesDisplay.length, 125, hash, trades.trade_date))
         }
+
     }
 
 

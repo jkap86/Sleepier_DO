@@ -10,22 +10,32 @@ import { fetchLmTrades, fetchFilteredLmTrades, fetchPriceCheckTrades } from '../
 const Trades = () => {
     const dispatch = useDispatch();
     const trades = useSelector(state => state.trades);
-    const { state, allplayers, tab } = useSelector(state => state.main);
+    const { state, allplayers, type1, type2 } = useSelector(state => state.main);
     const { leagues, user_id } = useSelector(state => state.user);
 
+    const hash = `${type1}-${type2}`;
 
-    useEffect(() => {
-        if (trades.lmTrades.count === '') {
-            dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125))
-
-        }
-    }, [user_id, leagues, trades.lmTrades.count, state.league_season, dispatch])
 
 
     useEffect(() => {
-        if ((trades.lmTrades.searched_player.id || trades.lmTrades.searched_manager.id) && !trades.lmTrades.searches.find(s => s.player === trades.lmTrades.searched_player.id && s.manager === trades.lmTrades.searched_manager.id)) {
+        dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125, hash, trades.trade_date))
+
+    }, [user_id, leagues, state.league_season, hash, trades.trade_date, dispatch])
+
+    useEffect(() => {
+        if (
+            (
+                trades.lmTrades.searched_player.id
+                || trades.lmTrades.searched_manager.id
+            ) && !trades.lmTrades.searches
+                .find(
+                    s => s.player === trades.lmTrades.searched_player.id
+                        && s.manager === trades.lmTrades.searched_manager.id
+                        && s.hash === hash
+                ) && !trades.isLoading
+        ) {
             console.log('fetching filtered lm trades')
-            dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, 0, 125))
+            dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, 0, 125, hash, trades.trade_date))
         }
     }, [trades.lmTrades.searched_player, trades.lmTrades.searched_manager, trades.lmTrades.searches, dispatch])
 
@@ -42,7 +52,7 @@ const Trades = () => {
         ) {
             dispatch(fetchPriceCheckTrades(trades.pricecheckTrades.pricecheck_player.id, trades.pricecheckTrades.pricecheck_player2.id, 0, 125))
         }
-    }, [trades.pricecheckTrades.pricecheck_player, trades.pricecheckTrades.pricecheck_player2, dispatch])
+    }, [trades.pricecheckTrades.pricecheck_player, trades.isLoading, hash, trades.pricecheckTrades.pricecheck_player2, dispatch])
 
     const picks_list = []
 
@@ -112,7 +122,7 @@ const Trades = () => {
     switch (trades.tab.primary) {
         case 'Leaguemate Trades':
             tradeCount = (!trades.lmTrades.searched_player?.id && !trades.lmTrades.searched_manager?.id)
-                ? trades.lmTrades.count
+                ? trades.lmTrades.trades?.[hash]?.count
                 : trades.lmTrades.searches
                     ?.find(
                         s => s.player === trades.lmTrades.searched_player.id
@@ -146,7 +156,7 @@ const Trades = () => {
     return <>
         <h2>
             {tradeCount?.toLocaleString("en-US")}
-            {` ${state.league_season} Trades`}
+            {` Total ${state.league_season} Trades`}
 
         </h2>
         <div className='navbar'>
@@ -164,6 +174,23 @@ const Trades = () => {
                 <option>Leaguemate Trades</option>
             </select>
         </div>
+        {
+            trades.tab.primary === 'Leaguemate Trades'
+                ? <div className='date'>
+                    <input
+                        type='date'
+                        value={new Date(trades.trade_date).toISOString().split('T')[0]}
+                        onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
+                    />
+                    to
+                    <input
+                        type='date'
+                        value={new Date(new Date(trades.trade_date) - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                        onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
+                    />
+                </div>
+                : null
+        }
         {
             trades.isLoading
                 ? <div className='loading_wrapper'>

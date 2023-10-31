@@ -2,7 +2,7 @@ const initialState = {
     isLoading: false,
     lmTrades: {
         count: '',
-        trades: [],
+        trades: {},
         itemActive: '',
         page: 1,
         searched_player: '',
@@ -19,7 +19,8 @@ const initialState = {
     error: null,
     tab: {
         primary: 'Leaguemate Trades'
-    }
+    },
+    trade_date: new Date()
 };
 
 const tradesReducer = (state = initialState, action) => {
@@ -28,15 +29,21 @@ const tradesReducer = (state = initialState, action) => {
         case 'FETCH_TRADES_START':
             return { ...state, isLoading: true, error: null };
         case 'FETCH_LMTRADES_SUCCESS':
+            console.log('TRADES REDUCER')
+            console.log({ action })
 
-            new_trades = action.payload.trades.filter(new_trade => !state.lmTrades.trades.find(old_trade => new_trade.transaction_id === old_trade.transaction_id))
 
             return {
                 ...state,
                 lmTrades: {
                     ...state.lmTrades,
-                    count: action.payload.count,
-                    trades: [...state.lmTrades.trades, ...new_trades]
+                    trades: {
+                        ...state.lmTrades.trades,
+                        [action.payload.hash]: {
+                            count: action.payload.count,
+                            trades: action.payload.trades
+                        }
+                    }
                 },
                 isLoading: false
             };
@@ -49,7 +56,8 @@ const tradesReducer = (state = initialState, action) => {
                 player: action.payload.player,
                 manager: action.payload.manager,
                 count: action.payload.count,
-                trades: [...existing_trades, ...new_trades]
+                trades: [...existing_trades, ...new_trades],
+                hash: action.payload.hash
             }
 
             return {
@@ -69,7 +77,8 @@ const tradesReducer = (state = initialState, action) => {
                 pricecheck_player: action.payload.pricecheck_player,
                 pricecheck_player2: action.payload.pricecheck_player2,
                 count: action.payload.count,
-                trades: [...existing_trades, ...new_trades]
+                trades: [...existing_trades, ...new_trades],
+                hash: action.payload.hash
             }
 
             return {

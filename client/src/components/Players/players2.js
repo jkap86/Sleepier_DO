@@ -46,8 +46,8 @@ const Players2 = ({
 
 
         const most_owned = lmplayershares
-            .filter(lm => lm?.user_id && lm?.playershares?.[player_id])
-            .map(lm => {
+            ?.filter(lm => lm?.user_id && lm?.playershares?.[player_id])
+            ?.map(lm => {
                 return {
                     user_id: lm.user_id,
                     username: lm.username,

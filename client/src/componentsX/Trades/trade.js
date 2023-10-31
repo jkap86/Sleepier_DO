@@ -57,15 +57,30 @@ const Trade = ({
                             className: 'small'
                         },
                         {
+                            text: trade['league.settings'].type === 2
+                                ? 'Dynasty'
+                                : trade['league.settings'].type === 1
+                                    ? 'Keeper'
+                                    : 'Redraft',
+                            colSpan: 1,
+                            className: 'type'
+                        },
+                        {
                             text: trade['league.name'],
-                            colSpan: 9,
-
+                            colSpan: 7,
                             image: {
                                 src: trade?.['league.avatar'],
                                 alt: 'league avatar',
                                 type: 'league'
                             }
                         },
+                        {
+                            text: trade['league.settings'].best_ball === 1
+                                ? 'Bestball'
+                                : 'Lineup',
+                            colSpan: 1,
+                            className: 'type'
+                        }
                     ]
                 },
                 ...trade.managers.map(rid => {
