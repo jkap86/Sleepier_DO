@@ -10,6 +10,8 @@ const initialState = {
     errorUser: false,
     isLoadingLeagues: false,
     errorLeagues: false,
+    isLoadingPS: false,
+    errorPS: false,
     isLoadingMatchups: false,
     errorMatchups: false,
     syncing: false,

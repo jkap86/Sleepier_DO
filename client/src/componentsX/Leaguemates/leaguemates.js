@@ -4,14 +4,23 @@ import LeaguemateLeagues from './leaguemateLeagues'
 import { useSelector, useDispatch } from 'react-redux';
 import { filterLeagues } from '../../functions/filterLeagues';
 import { getTrendColor } from "../../functions/misc";
+import { useEffect } from "react";
+import { fetchLmPlayerShares } from "../../redux/actions/fetchUser";
 
 const Leaguemates = () => {
     const dispatch = useDispatch();
     const { itemActive, page, searched } = useSelector(state => state.leaguemates);
-    const { username } = useSelector(state => state.user)
+    const { user_id, username, lmplayershares } = useSelector(state => state.user)
     const { filteredData } = useSelector(state => state.filteredData)
     const { type1, type2 } = useSelector(state => state.main);
 
+
+
+    useEffect(() => {
+        if (!lmplayershares) {
+            dispatch(fetchLmPlayerShares(user_id))
+        }
+    }, [lmplayershares, dispatch])
     const stateLeaguemates = filteredData.leaguemates || []
 
     const leaguemates_headers = [

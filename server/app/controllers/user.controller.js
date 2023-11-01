@@ -44,7 +44,12 @@ exports.create = async (req, res, app) => {
 exports.lmplayershares = async (req, res) => {
     try {
         const lmplayershares = await User.findAll({
-            attributes: ['user_id'],
+            attributes: [
+                'user_id',
+                'username',
+                'avatar',
+                'playershares'
+            ],
             include: [
                 {
                     model: League,
@@ -62,6 +67,7 @@ exports.lmplayershares = async (req, res) => {
             ]
         })
 
+        /*
         const lmleaguescount = await User.findAll({
             attributes: [
                 'user_id',
@@ -80,8 +86,9 @@ exports.lmplayershares = async (req, res) => {
             },
             group: ['user.user_id']
         })
+*/
 
-        res.send(lmleaguescount)
+        res.send(lmplayershares)
     } catch (error) {
         console.log(error)
     }

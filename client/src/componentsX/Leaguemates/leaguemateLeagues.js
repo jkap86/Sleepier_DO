@@ -5,11 +5,11 @@ import LeaguematePlayersLeagues from "./leaguematePlayersLeagues";
 import { useSelector, useDispatch } from 'react-redux';
 import { setState } from "../../redux/actions/state";
 import { filterLeagues } from '../../functions/filterLeagues';
-import { getTrendColor } from "../../functions/misc";
+import { getTrendColor, loadingIcon } from "../../functions/misc";
 
 const LeaguemateLeagues = ({ leaguemate }) => {
     const dispatch = useDispatch();
-    const { user_id, username, lmplayershares } = useSelector(state => state.user)
+    const { user_id, username, lmplayershares, isLoadingPS } = useSelector(state => state.user)
     const { allplayers: stateAllPlayers, type1, type2 } = useSelector(state => state.main)
     const leaguemates = useSelector(state => state.leaguemates);
     const initialLoadRef = useRef(null);
@@ -128,9 +128,9 @@ const LeaguemateLeagues = ({ leaguemate }) => {
             break;
     };
 
-    const userPlayerShares = lmplayershares.find(l => l.user_id === user_id)?.playershares || {}
+    const userPlayerShares = (lmplayershares || []).find(l => l.user_id === user_id)?.playershares || {}
 
-    const lmPlayerShares = lmplayershares.find(l => l.user_id === leaguemate.user_id)?.playershares || {}
+    const lmPlayerShares = (lmplayershares || []).find(l => l.user_id === leaguemate.user_id)?.playershares || {}
 
     const lmplayershares_header = [
         [
@@ -511,19 +511,23 @@ const LeaguemateLeagues = ({ leaguemate }) => {
                 </button>
             </div>
         </div>
-        <TableMain
-            id={'Players'}
-            type={'secondary'}
-            headers={headers}
-            body={body}
-            page={leaguemates.secondaryContent === 'Leagues' ? leaguemates.page_leagues : leaguemates.secondaryContent === 'Players-common' ? leaguemates.page_players_c : leaguemates.page_players_a}
-            setPage={(page) => leaguemates.secondaryContent === 'Leagues' ? dispatch(setState({ page_leagues: page }, 'LEAGUEMATES')) : leaguemates.secondaryContent === 'Players-common' ? dispatch(setState({ page_players_c: page }, 'LEAGUEMATES')) : dispatch(setState({ page_players_a: page }, 'LEAGUEMATES'))}
-            itemActive={leaguemates.secondaryContent === 'Leagues' ? leaguemates.itemActive_leagues : leaguemates.secondaryContent === 'Players-common' ? leaguemates.itemActive_players : null}
-            setItemActive={(itemActive) => leaguemates.secondaryContent === 'Leagues' ? dispatch(setState({ itemActive_leagues: itemActive }, 'LEAGUEMATES')) : dispatch(setState({ itemActive_players: itemActive }, 'LEAGUEMATES'))}
-            search={leaguemates.secondaryContent.includes('Players') ? true : false}
-            searched={leaguemates.searched_players}
-            setSearched={(searched) => dispatch(setState({ searched_players: searched }, 'LEAGUEMATES'))}
-        />
+        {
+            leaguemates.secondaryContent !== 'Leagues' && isLoadingPS
+                ? loadingIcon
+                : <TableMain
+                    id={'Players'}
+                    type={'secondary'}
+                    headers={headers}
+                    body={body}
+                    page={leaguemates.secondaryContent === 'Leagues' ? leaguemates.page_leagues : leaguemates.secondaryContent === 'Players-common' ? leaguemates.page_players_c : leaguemates.page_players_a}
+                    setPage={(page) => leaguemates.secondaryContent === 'Leagues' ? dispatch(setState({ page_leagues: page }, 'LEAGUEMATES')) : leaguemates.secondaryContent === 'Players-common' ? dispatch(setState({ page_players_c: page }, 'LEAGUEMATES')) : dispatch(setState({ page_players_a: page }, 'LEAGUEMATES'))}
+                    itemActive={leaguemates.secondaryContent === 'Leagues' ? leaguemates.itemActive_leagues : leaguemates.secondaryContent === 'Players-common' ? leaguemates.itemActive_players : null}
+                    setItemActive={(itemActive) => leaguemates.secondaryContent === 'Leagues' ? dispatch(setState({ itemActive_leagues: itemActive }, 'LEAGUEMATES')) : dispatch(setState({ itemActive_players: itemActive }, 'LEAGUEMATES'))}
+                    search={leaguemates.secondaryContent.includes('Players') ? true : false}
+                    searched={leaguemates.searched_players}
+                    setSearched={(searched) => dispatch(setState({ searched_players: searched }, 'LEAGUEMATES'))}
+                />
+        }
     </>
 }
 

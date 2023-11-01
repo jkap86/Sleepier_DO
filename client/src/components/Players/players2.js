@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useMemo } from "react";
 import { setState } from "../../redux/actions/state";
 import TableMain from "../../componentsX/Home/tableMain";
-import { getTrendColor } from "../../functions/misc";
+import { getTrendColor, loadingIcon } from "../../functions/misc";
 import { filterLeagues } from "../../functions/filterLeagues";
 import Players3 from "./players3";
 
@@ -13,7 +13,7 @@ const Players2 = ({
     player_id
 }) => {
     const dispatch = useDispatch();
-    const { lmplayershares } = useSelector(state => state.user);
+    const { lmplayershares, isLoadingPS } = useSelector(state => state.user);
     const { tab, itemActive2, page2 } = useSelector(state => state.players)
     const { allplayers: stateAllPlayers, type1, type2 } = useSelector(state => state.main)
 
@@ -45,25 +45,27 @@ const Players2 = ({
         }
 
 
-        const most_owned = lmplayershares
-            ?.filter(lm => lm?.user_id && lm?.playershares?.[player_id])
-            ?.map(lm => {
-                return {
-                    user_id: lm.user_id,
-                    username: lm.username,
-                    avatar: lm.avatar,
-                    count: keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[0], 0),
-                    percentage: (
-                        keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[0], 0)
-                        / keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[1], 0)
-                        * 100
-                    ).toFixed(1)
+        const most_owned = isLoadingPS
+            ? loadingIcon
+            : (lmplayershares || [])
+                ?.filter(lm => lm?.user_id && lm?.playershares?.[player_id])
+                ?.map(lm => {
+                    return {
+                        user_id: lm.user_id,
+                        username: lm.username,
+                        avatar: lm.avatar,
+                        count: keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[0], 0),
+                        percentage: (
+                            keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[0], 0)
+                            / keys?.reduce((acc, cur) => acc + lm.playershares[player_id]?.[cur]?.[1], 0)
+                            * 100
+                        ).toFixed(1)
 
-                }
-            })
+                    }
+                })
 
         return most_owned;
-    }, [type1, type2, lmplayershares])
+    }, [type1, type2, lmplayershares, isLoadingPS, loadingIcon])
 
 
     const leagues_display = tab.secondary === 'Owned' ? leagues_owned :
@@ -213,7 +215,7 @@ const Players2 = ({
     })
 
 
-    const leaguemate_shares_body_count = most_owned
+    const leaguemate_shares_body_count = lmplayershares && most_owned
         ?.sort((a, b) => b.count - a.count)
         .slice(0, 25)
         ?.map(lm => {
@@ -243,7 +245,7 @@ const Players2 = ({
             }
         })
 
-    const leaguemate_shares_body_percentage = most_owned
+    const leaguemate_shares_body_percentage = lmplayershares && most_owned
         ?.sort((a, b) => b.percentage - a.percentage)
         .slice(0, 25)
         ?.map(lm => {
@@ -302,18 +304,20 @@ const Players2 = ({
         </div>
         {
             tab.secondary === 'Leaguemate Shares'
-                ? <>
-                    <TableMain
-                        type={'secondary subs'}
-                        headers={[]}
-                        body={leaguemate_shares_body_count}
-                    />
-                    <TableMain
-                        type={'secondary lineup'}
-                        headers={[]}
-                        body={leaguemate_shares_body_percentage}
-                    />
-                </>
+                ? isLoadingPS
+                    ? loadingIcon
+                    : <>
+                        <TableMain
+                            type={'secondary subs'}
+                            headers={[]}
+                            body={leaguemate_shares_body_count}
+                        />
+                        <TableMain
+                            type={'secondary lineup'}
+                            headers={[]}
+                            body={leaguemate_shares_body_percentage}
+                        />
+                    </>
                 : <div className="relative">
 
                     <TableMain

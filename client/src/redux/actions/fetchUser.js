@@ -182,6 +182,8 @@ export const fetchFilteredData = (leagues, type1, type2, tab, season) => async (
 };
 
 export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
+    dispatch({ type: 'SET_STATE_USER', payload: { isLoadingPS: true } });
+
     try {
         const lmplayershares = await axios.get('/user/lmplayershares', {
             params: { user_id: user_id }
@@ -189,9 +191,9 @@ export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
 
         console.log({ lmplayershares: lmplayershares.data.sort((a, b) => a.username > b.username ? 1 : -1) })
 
-        dispatch({ type: 'SET_STATE_USER', payload: { lmplayershares: lmplayershares.data } });
+        dispatch({ type: 'SET_STATE_USER', payload: { lmplayershares: lmplayershares.data, isLoadingPS: false } });
     } catch (err) {
-        console.log(err)
+        dispatch({ type: 'SET_STATE_USER', payload: { isLoadingPS: false, errorPS: err.message } });
     }
 }
 

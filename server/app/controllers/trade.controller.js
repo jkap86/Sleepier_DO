@@ -47,7 +47,7 @@ exports.leaguemate = async (req, res) => {
             status_updated: {
                 [Op.and]: [
                     { [Op.lt]: new Date(req.body.trade_date).getTime() },
-                    { [Op.gt]: new Date(new Date(req.body.trade_date) - 30 * 24 * 60 * 60 * 1000).getTime() }
+                    { [Op.gt]: new Date(new Date(req.body.trade_date) - 7 * 24 * 60 * 60 * 1000).getTime() }
                 ]
             }
         })

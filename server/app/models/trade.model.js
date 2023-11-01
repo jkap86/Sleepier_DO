@@ -37,6 +37,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.JSONB
         }
     }, {
+        /*
         indexes: [
             {
                 fields: [{ attribute: 'status_updated', operator: 'DESC' }, 'managers', 'players', 'status_updated', 'leagueLeagueId'],
@@ -44,6 +45,7 @@ module.exports = (sequelize, Sequelize) => {
 
             }
         ]
+        */
     });
 
     return Trade;

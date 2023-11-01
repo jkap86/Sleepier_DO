@@ -30,7 +30,9 @@ function start() {
     app.use(express.json({ limit: '50mb' }));
     app.use(express.static(path.resolve(__dirname, '../client/build')));
 
-    app.use(logVisits);
+    if (process.env.HEROKU) {
+        app.use(logVisits);
+    }
 
     const db = require('./app/models');
     db.sequelize.sync({ alter: true })
