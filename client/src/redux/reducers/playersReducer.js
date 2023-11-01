@@ -25,7 +25,9 @@ const initialState = {
     tab: {
         secondary: 'Owned'
     },
-    lineupType: 'Players'
+    lineupType: 'Players',
+    primaryContent: 'Ownership',
+    sortBy: 'Owned'
 };
 
 const playersReducer = (state = initialState, action) => {

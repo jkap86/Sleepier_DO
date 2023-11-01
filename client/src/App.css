@@ -37,6 +37,14 @@ body {
   position: relative;
 }
 
+td.stat {
+  padding: 0;
+}
+
+p.stat {
+  font-size: 2.75rem;
+}
+
 .App {
   height: 100%;
   width: 100%;
