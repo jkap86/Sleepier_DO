@@ -8,7 +8,7 @@ const Trade = ({
 }) => {
     const { state: stateState, allplayers, values } = useSelector(state => state.main)
 
-    const date = getUTCDate(new Date())
+    const date = getUTCDate(new Date(new Date().toISOString().split('T')[0]))
 
     const trade_date = getUTCDate(new Date(parseInt(trade.status_updated)))
 
@@ -36,7 +36,7 @@ const Trade = ({
                     )
                     && value.type === type
             )
-        return value?.value || 0
+        return value?.value
     }
 
     const getKtcPickName = (pick) => {
@@ -98,11 +98,11 @@ const Trade = ({
 
                     const current_value_players = Object.keys(trade.adds || {})
                         .filter(a => trade.adds[a] === roster?.user_id)
-                        .reduce((acc, cur) => acc + getTradeValue(cur, date, type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(cur, date, type) || getTradeValue(cur, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type), 0)
 
                     const current_value_picks = trade.draft_picks
                         .filter(p => p.owner_id === roster?.roster_id)
-                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), date, type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), date, type) || getTradeValue(getKtcPickName(cur), getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type), 0)
 
                     const current_value_total = current_value_players + current_value_picks
 
@@ -154,7 +154,7 @@ const Trade = ({
                                         {
                                             Object.keys(trade.adds || {}).filter(a => trade.adds[a] === roster?.user_id).map(player_id => {
 
-                                                const value = getTradeValue(player_id, date, type)
+                                                const value = getTradeValue(player_id, date, type) || getTradeValue(player_id, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type)
 
                                                 const trade_value = getTradeValue(player_id, trade_date, type)
 
@@ -225,7 +225,7 @@ const Trade = ({
                                                 .map(pick => {
                                                     const ktc_name = getKtcPickName(pick)
 
-                                                    const value = getTradeValue(ktc_name, date, type)
+                                                    const value = getTradeValue(ktc_name, date, type) || getTradeValue(ktc_name, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type)
 
                                                     const trade_value = getTradeValue(ktc_name, trade_date, type)
 

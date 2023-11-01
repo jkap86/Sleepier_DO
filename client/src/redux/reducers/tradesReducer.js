@@ -20,7 +20,7 @@ const initialState = {
     tab: {
         primary: 'Leaguemate Trades'
     },
-    trade_date: new Date()
+    trade_date: new Date(new Date().toISOString().split('T')[0])
 };
 
 const tradesReducer = (state = initialState, action) => {
