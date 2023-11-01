@@ -197,7 +197,7 @@ export const fetchLmPlayerShares = (user_id) => async (dispatch) => {
     }
 }
 
-export const fetchLmTrades = (user_id, leagues, season, offset, limit, hash, trade_date) => {
+export const fetchLmTrades = (user_id, leagues, season, offset, limit, hash, trade_date, more = false) => {
     return async (dispatch) => {
         dispatch({ type: 'FETCH_TRADES_START' });
 
@@ -222,7 +222,9 @@ export const fetchLmTrades = (user_id, leagues, season, offset, limit, hash, tra
                 type: 'FETCH_LMTRADES_SUCCESS', payload: {
                     count: trades.data.count,
                     trades: trades_tips,
-                    hash: hash
+                    hash: hash,
+                    more: more
+
                 }
             });
         } catch (error) {

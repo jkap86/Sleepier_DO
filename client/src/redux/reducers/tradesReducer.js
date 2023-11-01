@@ -33,6 +33,15 @@ const tradesReducer = (state = initialState, action) => {
             console.log({ action })
 
 
+            let updated_trades;
+
+            if (action.payload.more) {
+                updated_trades = [...(state.lmTrades.trades[action.payload.hash]?.trades || []), ...action.payload.trades]
+            } else {
+                updated_trades = action.payload.trades
+
+            }
+
             return {
                 ...state,
                 lmTrades: {
@@ -41,7 +50,7 @@ const tradesReducer = (state = initialState, action) => {
                         ...state.lmTrades.trades,
                         [action.payload.hash]: {
                             count: action.payload.count,
-                            trades: [...(state.lmTrades.trades[action.payload.hash]?.trades || []), ...action.payload.trades]
+                            trades: updated_trades
                         }
                     }
                 },

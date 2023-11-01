@@ -88,21 +88,21 @@ const Trade = ({
 
                     const trade_value_players = Object.keys(trade.adds || {})
                         .filter(a => trade.adds[a] === roster?.user_id)
-                        .reduce((acc, cur) => acc + getTradeValue(cur, trade_date, type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(cur, trade_date, type) || 0, 0)
 
                     const trade_value_picks = trade.draft_picks
                         .filter(p => p.owner_id === roster?.roster_id)
-                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), trade_date, type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), trade_date, type) || 0, 0)
 
                     const trade_value_total = trade_value_players + trade_value_picks
 
                     const current_value_players = Object.keys(trade.adds || {})
                         .filter(a => trade.adds[a] === roster?.user_id)
-                        .reduce((acc, cur) => acc + getTradeValue(cur, date, type) || getTradeValue(cur, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(cur, date, type) || getTradeValue(cur, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type) || 0, 0)
 
                     const current_value_picks = trade.draft_picks
                         .filter(p => p.owner_id === roster?.roster_id)
-                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), date, type) || getTradeValue(getKtcPickName(cur), getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type), 0)
+                        .reduce((acc, cur) => acc + getTradeValue(getKtcPickName(cur), date, type) || getTradeValue(getKtcPickName(cur), getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type) || 0, 0)
 
                     const current_value_total = current_value_players + current_value_picks
 
@@ -156,7 +156,7 @@ const Trade = ({
 
                                                 const value = getTradeValue(player_id, date, type) || getTradeValue(player_id, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type)
 
-                                                const trade_value = getTradeValue(player_id, trade_date, type)
+                                                const trade_value = getTradeValue(player_id, trade_date, type) || 0
 
                                                 const trend = (value || 0) - (trade_value || 0)
 
@@ -203,7 +203,7 @@ const Trade = ({
                                                     } ><p><span >+ {allplayers[player_id]?.full_name}</span></p></td>
                                                     <td className='value'
                                                         colSpan={4}>
-                                                        {trade_value}
+                                                        {trade_value.toString()}
                                                     </td>
                                                     <td
                                                         className={trend > 0 ? 'green stat value' : trend < 0 ? 'red stat value' : 'stat value'}
@@ -227,7 +227,7 @@ const Trade = ({
 
                                                     const value = getTradeValue(ktc_name, date, type) || getTradeValue(ktc_name, getUTCDate(new Date(new Date() - 24 * 60 * 60 * 1000)), type)
 
-                                                    const trade_value = getTradeValue(ktc_name, trade_date, type)
+                                                    const trade_value = getTradeValue(ktc_name, trade_date, type) || 0
 
                                                     const trend = (value || 0) - (trade_value || 0)
                                                     return <tr>
@@ -246,7 +246,7 @@ const Trade = ({
                                                         </td>
                                                         <td className='value' colSpan={4}>
                                                             {
-                                                                value
+                                                                trade_value.toString()
                                                             }
                                                         </td>
                                                         <td
