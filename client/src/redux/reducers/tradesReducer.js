@@ -20,7 +20,7 @@ const initialState = {
     tab: {
         primary: 'Leaguemate Trades'
     },
-    trade_date: new Date(new Date().toISOString().split('T')[0])
+    trade_date: new Date(new Date())
 };
 
 const tradesReducer = (state = initialState, action) => {
@@ -41,7 +41,7 @@ const tradesReducer = (state = initialState, action) => {
                         ...state.lmTrades.trades,
                         [action.payload.hash]: {
                             count: action.payload.count,
-                            trades: action.payload.trades
+                            trades: [...(state.lmTrades.trades[action.payload.hash]?.trades || []), ...action.payload.trades]
                         }
                     }
                 },

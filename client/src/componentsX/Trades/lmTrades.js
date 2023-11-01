@@ -84,7 +84,7 @@ const LmTrades = ({
     const loadMore = async () => {
         console.log('LOADING MORE')
 
-        dispatch(setState({ lmTrades: { ...trades.lmTrades, page: Math.floor(tradesDisplay.length / 25) + 1 } }, 'TRADES'))
+        dispatch(setState({ lmTrades: { ...trades.lmTrades, page: Math.min(Math.floor(tradesDisplay.length / 25)) + 1 } }, 'TRADES'))
 
         if (trades.lmTrades.searched_player === '' && trades.lmTrades.searched_manager === '') {
             dispatch(fetchLmTrades(user_id, leagues, state.league_season, trades.lmTrades.trades.length, 125, hash, trades.trade_date))
