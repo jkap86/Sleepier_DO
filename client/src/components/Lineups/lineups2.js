@@ -2,7 +2,7 @@ import TableMain from "../View/tableMain";
 import Roster from "../View/roster";
 import { useSelector, useDispatch } from "react-redux";
 import { setState } from "../../redux/actions/state";
-import { matchTeam } from "../../functions/misc";
+import { getTrendColor, matchTeam } from "../../functions/misc";
 import { syncLeague } from "../../redux/actions/fetchUser";
 import { fetchMatchups } from "../../redux/actions/fetchMatchups";
 import { useEffect } from "react";
@@ -32,17 +32,22 @@ const Lineups2 = ({
     const { state, allplayers, projections, schedule } = useSelector(state => state.main);
     const { user_id, username, syncing } = useSelector(state => state.user);
     const {
+        includeLocked,
+        includeTaxi,
         week,
         rankings,
         secondaryContent1,
         secondaryContent2,
-        itemActive,
+        lineupChecks,
         itemActive2,
         page2_start,
         page2_bench,
         page2_start_opp,
         page2_bench_opp
     } = useSelector(state => state.lineups);
+
+
+    const hash = `${includeTaxi}-${includeLocked}`
 
     console.log({ proj_score_user_optimal })
     useEffect(() => {
@@ -433,7 +438,7 @@ const Lineups2 = ({
             [
                 {
                     text: type,
-                    colSpan: 1
+                    colSpan: 5
                 }
             ]
         ]
@@ -443,18 +448,44 @@ const Lineups2 = ({
     const getGroupBody = (leagues) => {
         return leagues
             .map(league => {
+                const proj_fp = league.settings.best_ball === 1
+                    ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_optimal
+                    : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_actual
+
+                const proj_fp_opp = league.settings.best_ball === 1
+                    ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_optimal
+                    : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_actual
+
                 return {
                     id: league.league_id,
                     list: [
                         {
                             text: league.name,
-                            colSpan: 1,
+                            colSpan: 3,
                             className: 'left',
                             image: {
                                 src: league.avatar,
                                 alt: 'league avatar',
                                 type: 'league'
                             }
+                        },
+                        {
+                            text: <p
+                                className="stat"
+                                style={getTrendColor(((proj_fp - proj_fp_opp) / Math.max(proj_fp, proj_fp_opp)), .001)}
+                            >
+                                {proj_fp.toFixed(1)}
+                            </p>,
+                            colSpan: 1
+                        },
+                        {
+                            text: <p
+                                className="stat"
+                                style={getTrendColor(((proj_fp - proj_fp_opp) / Math.max(proj_fp, proj_fp_opp)), .001)}
+                            >
+                                {proj_fp_opp.toFixed(1)}
+                            </p>,
+                            colSpan: 1
                         }
                     ]
                 }

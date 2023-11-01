@@ -216,7 +216,7 @@ const Players1 = () => {
         .sort((a, b) => (
             sortBy === 'Owned' && b.owned - a.owned
         ) || (sortBy === 'winpct_user' && b.winpct_user - a.winpct_user)
-            || (sortBy === 'winpct_user' && b.winpct_lm - a.winpct_lm)
+            || (sortBy === 'winpct_lm' && b.winpct_lm - a.winpct_lm)
         )
 
     const teamFilter = teamFilterIcon(filters.team, (team) => dispatch(setState({ filters: { ...filters, team: team } }, 'PLAYERS')))
