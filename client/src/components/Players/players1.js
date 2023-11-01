@@ -28,7 +28,7 @@ const Players1 = () => {
                 text: <span
                     onClick={() => dispatch(setState({ sortBy: 'Owned' }, 'PLAYERS'))}
                 >
-                    Owned
+                    Owned <i className="fa-solid fa-sort"></i>
                 </span>,
                 colSpan: 5,
             },
@@ -36,7 +36,7 @@ const Players1 = () => {
                 text: <span
                     onClick={() => dispatch(setState({ sortBy: 'winpct_user' }, 'PLAYERS'))}
                 >
-                    {username}
+                    {username} <i className="fa-solid fa-sort"></i>
                 </span>,
                 colSpan: 8
             },
@@ -44,7 +44,7 @@ const Players1 = () => {
                 text: <span
                     onClick={() => dispatch(setState({ sortBy: 'winpct_lm' }, 'PLAYERS'))}
                 >
-                    Leaguemates
+                    Leaguemates <i className="fa-solid fa-sort"></i>
                 </span>,
                 colSpan: 8
             }
