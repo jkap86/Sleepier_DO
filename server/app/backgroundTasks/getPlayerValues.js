@@ -23,7 +23,7 @@ module.exports = async (app) => {
 
     }
 
-    const getDailyValues = async () => {
+    const getDailyValues = async (all = false) => {
 
         console.log(`Beginning daily rankings update at ${new Date()}`)
 
@@ -40,39 +40,68 @@ module.exports = async (app) => {
                 const sleeper_id = matchPlayer(ktc_player, stateAllPlayers)
 
                 if (sleeper_id) {
-                    let player_sf, player_oneqb;
+                    if (process.env.KTC_DAY === 'ALL' || all) {
+                        for (const value_sf of (ktc_player.superflexValueHistory || [])) {
+                            const date = getUTCDate(new Date(value_sf.d))
+                            const value = value_sf.v || 0;
 
-                    if (process.env.KTC_DAY) {
-                        player_sf = ktc_player.superflexValueHistory.find(p => p.d === process.env.KTC_DAY)
-                        player_oneqb = ktc_player.oneQBValueHistory.find(p => p.d === process.env.KTC_DAY)
+                            new_values.push({
+                                date: date,
+                                type: 'sf',
+                                player_id: sleeper_id,
+                                value: value
+                            })
+
+                        }
+
+                        for (const value_oneqb of (ktc_player.oneQBValueHistory || [])) {
+                            const date = getUTCDate(new Date(value_oneqb.d))
+                            const value = value_oneqb.v || 0;
+
+                            new_values.push({
+                                date: date,
+                                type: 'oneqb',
+                                player_id: sleeper_id,
+                                value: value
+                            })
+                        }
                     } else {
-                        player_sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1]
-                        player_oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1]
+
+                        let player_sf, player_oneqb;
+
+                        if (process.env.KTC_DAY) {
+                            player_sf = ktc_player.superflexValueHistory.find(p => p.d === process.env.KTC_DAY)
+                            player_oneqb = ktc_player.oneQBValueHistory.find(p => p.d === process.env.KTC_DAY)
+                        } else {
+                            player_sf = ktc_player.superflexValueHistory[ktc_player.superflexValueHistory.length - 1]
+                            player_oneqb = ktc_player.oneQBValueHistory[ktc_player.oneQBValueHistory.length - 1]
+                        }
+
+                        if (player_sf) {
+                            const date = getUTCDate(new Date(player_sf.d))
+                            const sf = player_sf.v || 0
+
+                            new_values.push({
+                                date: date,
+                                type: 'sf',
+                                player_id: sleeper_id,
+                                value: sf
+                            })
+                        }
+
+                        if (player_oneqb) {
+                            const date2 = getUTCDate(new Date(player_oneqb.d))
+                            const oneqb = player_oneqb.v || 0
+
+                            new_values.push({
+                                date: date2,
+                                type: 'oneqb',
+                                player_id: sleeper_id,
+                                value: oneqb
+                            })
+                        }
                     }
 
-                    if (player_sf) {
-                        const date = getUTCDate(new Date(player_sf.d))
-                        const sf = player_sf.v
-
-                        new_values.push({
-                            date: date,
-                            type: 'sf',
-                            player_id: sleeper_id,
-                            value: sf
-                        })
-                    }
-
-                    if (player_oneqb) {
-                        const date2 = getUTCDate(new Date(player_oneqb.d))
-                        const oneqb = player_oneqb.v
-
-                        new_values.push({
-                            date: date2,
-                            type: 'oneqb',
-                            player_id: sleeper_id,
-                            value: oneqb
-                        })
-                    }
                 }
             })
 
@@ -80,19 +109,28 @@ module.exports = async (app) => {
 
             console.log({ dates_updated })
 
-            const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8');
+            const playervalues_json = fs.readFileSync('./playervalues.json', 'utf-8', (err, playervalues_json) => {
+                if (err) {
+                    console.error('Error reading the file:', err);
+                    return;
+                }
 
-            const data = [
-                ...JSON.parse(playervalues_json)
-                    .filter(x => !new_values.find(y => x.date === y.date && x.type === y.type && x.player_id === y.player_id)),
-                ...new_values
-            ]
+                const data = [
+                    ...JSON.parse(playervalues_json)
+                        .filter(x => !new_values.find(y => x.date === y.date && x.type === y.type && x.player_id === y.player_id)),
+                    ...new_values
+                ]
 
-            try {
-                fs.writeFileSync('./playervalues.json', JSON.stringify(data))
-            } catch (error) {
-                console.log(error)
-            }
+                fs.writeFile('./playervalues.json', JSON.stringify(data), (err) => {
+                    if (err) {
+                        console.error('Error writing to the file:', err);
+                        return;
+                    }
+                    console.log('Data has been written to the file.');
+                });
+            });
+
+
         } catch (err) {
             console.log(err.message)
         }
@@ -105,7 +143,7 @@ module.exports = async (app) => {
 
 
     if (process.env.HEROKU) {
-        await getDailyValues()
+        await getDailyValues(true)
 
         setInterval(async () => {
             await getDailyValues()
