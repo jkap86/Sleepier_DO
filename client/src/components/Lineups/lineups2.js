@@ -32,7 +32,6 @@ const Lineups2 = ({
     const { state, allplayers, projections, schedule } = useSelector(state => state.main);
     const { user_id, username, syncing } = useSelector(state => state.user);
     const {
-        includeLocked,
         includeTaxi,
         week,
         rankings,
@@ -47,9 +46,9 @@ const Lineups2 = ({
     } = useSelector(state => state.lineups);
 
 
-    const hash = `${includeTaxi}-${includeLocked}`
+    const hash = `${includeTaxi}-${true}`
 
-    console.log({ proj_score_user_optimal })
+
     useEffect(() => {
         if (league?.settings?.best_ball === 1) {
             dispatch(setState({ secondaryContent1: 'Optimal' }, 'LINEUPS'))
@@ -59,7 +58,6 @@ const Lineups2 = ({
             dispatch(setState({ secondaryContent2: 'Lineup' }, 'LINEUPS'))
         }
     }, [league, dispatch])
-
 
 
     const handleSync = (league_id) => {

@@ -15,7 +15,6 @@ const Lineups1 = () => {
     const { username, leagues } = useSelector(state => state.user);
     const {
         includeTaxi,
-        includeLocked,
         week,
         lineupChecks,
         column1,
@@ -39,18 +38,18 @@ const Lineups1 = () => {
 
 
 
-    const hash = `${includeTaxi}-${includeLocked}`
-
-    useEffect(() => {
-        if (itemActive) {
-            if (secondaryContent1 === 'Optimal' || secondaryContent2 === 'Optimal') {
-                dispatch(setState({ includeLocked: false }, 'LINEUPS'))
+    const hash = `${includeTaxi}-${true}`
+    /*
+        useEffect(() => {
+            if (itemActive) {
+                if (secondaryContent1 === 'Optimal' || secondaryContent2 === 'Optimal') {
+                    dispatch(setState({ includeLocked: false }, 'LINEUPS'))
+                }
+            } else {
+                dispatch(setState({ includeLocked: true }, 'LINEUPS'))
             }
-        } else {
-            dispatch(setState({ includeLocked: true }, 'LINEUPS'))
-        }
-    }, [dispatch, secondaryContent1, secondaryContent2, itemActive])
-
+        }, [dispatch, secondaryContent1, secondaryContent2, itemActive])
+    */
     const projectedRecord = week >= state.week
         ? filterLeagues((leagues || []), type1, type2)
             .reduce((acc, cur) => {
@@ -951,7 +950,6 @@ const Lineups1 = () => {
                                 search={true}
                                 searched={searched}
                                 setSearched={(value) => dispatch(setState({ searched: value }, 'LINEUPS'))}
-                                options2={[includeLockedIcon(includeLocked, (value) => dispatch(setState({ includeLocked: value }, 'LINEUPS')))]}
                                 options1={[includeTaxiIcon(includeTaxi, (value) => dispatch(setState({ includeTaxi: value }, 'LINEUPS')))]}
                             />
                             : <TableMain
