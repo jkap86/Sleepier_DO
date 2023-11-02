@@ -47,6 +47,16 @@ const TableMain = ({
 
     }, [itemActiveRef, itemActive])
 
+    useEffect(() => {
+        if (!body
+            ?.filter(x => x)
+            ?.slice(Math.max(((page || 1) - 1) * 25, 0), (((page || 1) - 1) * 25) + 25)
+            ?.length > 0
+        ) {
+            setPage(1)
+        }
+
+    }, [body, page])
 
     return <>
         {

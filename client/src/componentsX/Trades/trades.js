@@ -18,8 +18,9 @@ const Trades = () => {
 
 
     useEffect(() => {
-        dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125, hash, trades.trade_date))
-
+        if (trades.tab.primary === 'Leaguemate Trades') {
+            dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125, hash, trades.trade_date))
+        }
     }, [user_id, leagues, state.league_season, hash, trades.trade_date, dispatch])
 
     useEffect(() => {
@@ -174,23 +175,20 @@ const Trades = () => {
                 <option>Leaguemate Trades</option>
             </select>
         </div>
-        {
-            trades.tab.primary === 'Leaguemate Trades'
-                ? <div className='date'>
-                    <input
-                        type='date'
-                        value={new Date(trades.trade_date).toISOString().split('T')[0]}
-                        onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
-                    />
-                    to
-                    <input
-                        type='date'
-                        value={new Date(new Date(trades.trade_date) - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                        onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
-                    />
-                </div>
-                : null
-        }
+        <div className='date'>
+            <input
+                type='date'
+                value={new Date(trades.trade_date).toISOString().split('T')[0]}
+                onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
+            />
+            to
+            <input
+                type='date'
+                value={new Date(new Date(trades.trade_date) - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                onChange={(e) => dispatch(setState({ trade_date: new Date(e.target.value.split('T')[0]) }, 'TRADES'))}
+            />
+        </div>
+
         {
             trades.isLoading
                 ? <div className='loading_wrapper'>
