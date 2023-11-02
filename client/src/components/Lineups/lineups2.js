@@ -446,14 +446,27 @@ const Lineups2 = ({
     const getGroupBody = (leagues) => {
         return leagues
             .map(league => {
-                const proj_fp = league.settings.best_ball === 1
-                    ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_optimal
-                    : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_actual
+                let proj_fp, proj_fp_opp;
 
-                const proj_fp_opp = league.settings.best_ball === 1
-                    ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_optimal
-                    : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_actual
+                if (week >= state.week) {
+                    proj_fp = league.settings.best_ball === 1
+                        ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_optimal
+                        : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_user?.proj_score_actual
 
+                    proj_fp_opp = league.settings.best_ball === 1
+                        ? lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_optimal
+                        : lineupChecks[week]?.[hash]?.[league.league_id]?.lc_opp?.proj_score_actual
+
+                } else {
+                    proj_fp = league.settings.best_ball === 1
+                        ? lineupChecks[week]?.[league.league_id]?.lc_user?.proj_score_optimal
+                        : lineupChecks[week]?.[league.league_id]?.lc_user?.proj_score_actual
+
+                    proj_fp_opp = league.settings.best_ball === 1
+                        ? lineupChecks[week]?.[league.league_id]?.lc_opp?.proj_score_optimal
+                        : lineupChecks[week]?.[league.league_id]?.lc_opp?.proj_score_actual
+
+                }
                 return {
                     id: league.league_id,
                     list: [
@@ -472,7 +485,7 @@ const Lineups2 = ({
                                 className="stat"
                                 style={getTrendColor(((proj_fp - proj_fp_opp) / Math.max(proj_fp, proj_fp_opp)), .001)}
                             >
-                                {proj_fp.toFixed(1)}
+                                {proj_fp?.toFixed(1)}
                             </p>,
                             colSpan: 1
                         },
@@ -481,7 +494,7 @@ const Lineups2 = ({
                                 className="stat"
                                 style={getTrendColor(((proj_fp - proj_fp_opp) / Math.max(proj_fp, proj_fp_opp)), .001)}
                             >
-                                {proj_fp_opp.toFixed(1)}
+                                {proj_fp_opp?.toFixed(1)}
                             </p>,
                             colSpan: 1
                         }
