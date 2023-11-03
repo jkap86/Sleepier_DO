@@ -61,11 +61,16 @@ module.exports = (app) => {
                     if (!existing_log_to_send) {
                         logs_to_send.push({
                             ip_address: entry_ip,
-                            searches: [{ ip_address: entry.ip, timestamp: entry.timestamp }]
+                            searches: [{
+                                route: entry.route,
+                                params: entry.request,
+                                timestamp: entry.timestamp
+                            }]
                         })
                     } else {
                         existing_log_to_send.searches.push({
-                            ip_address: entry.username,
+                            route: entry.route,
+                            params: entry.request,
                             timestamp: entry.timestamp
                         })
                     }
@@ -77,6 +82,14 @@ module.exports = (app) => {
             total_searches: logs_to_send.flatMap(lts => lts.searches)?.length,
             searches: logs_to_send.sort((a, b) => b.searches.length - a.searches.length)
         })
+    })
+
+    router.get('/all', (req, res) => {
+        console.log('Getting logs of users');
+
+        const logs = fs.readFileSync('./logs.json')
+
+        res.send(JSON.parse(logs));
     })
 
     app.use('/logs', router);
