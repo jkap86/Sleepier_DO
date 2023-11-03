@@ -134,7 +134,7 @@ const Roster = ({
                         },
 
                         {
-                            text: allplayers[player_id]?.full_name,
+                            text: allplayers[player_id]?.full_name || ' ',
                             colSpan: 15,
                             className: 'left',
                             image: {
