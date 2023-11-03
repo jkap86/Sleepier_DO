@@ -26,11 +26,11 @@ module.exports = (app) => {
                     if (!existing_log_to_send) {
                         logs_to_send.push({
                             username: entry_username,
-                            searches: [{ ip_address: entry.ip.split(',')[1] || entry.ip, timestamp: entry.timestamp }]
+                            searches: [{ ip_address: (entry.ip.split(',')[1] || entry.ip).split('.').slice(0, 3).join('.'), timestamp: entry.timestamp }]
                         })
                     } else {
                         existing_log_to_send.searches.push({
-                            ip_address: entry.ip.split(',')[1] || entry.ip,
+                            ip_address: (entry.ip.split(',')[1] || entry.ip).split('.').slice(0, 3).join('.'),
                             timestamp: entry.timestamp
                         })
                     }
@@ -54,7 +54,7 @@ module.exports = (app) => {
         JSON.parse(logs)
             .filter(l => req.params.date === l.timestamp.split(',')[0].replace(/[^0-9]/g, ''))
             .forEach(entry => {
-                const entry_ip = entry.ip.split(',')[1] || entry.ip
+                const entry_ip = (entry.ip.split(',')[1] || entry.ip).split('.').slice(0, 3).join('.')
 
                 if (entry_ip) {
                     const existing_log_to_send = logs_to_send.find(lts => lts.ip_address === entry_ip)
