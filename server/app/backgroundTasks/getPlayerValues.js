@@ -119,7 +119,7 @@ module.exports = async (app) => {
                 const existing_values = JSON.parse(playervalues_json)
 
                 const data = Object.fromEntries(
-                    [...existing_values.slice(existing_values.length - 5, existing_values.length - 1), ...new_values]
+                    [...existing_values.filter(ev => !new_values.find(nv => nv.date === ev.date)), ...new_values]
                         .map(value_obj => {
 
                             return [
