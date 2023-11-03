@@ -30,7 +30,7 @@ function start() {
     app.use(express.json({ limit: '50mb' }));
     app.use(express.static(path.resolve(__dirname, '../client/build')));
 
-    if (process.env.HEROKU) {
+    if (process.env.DATABASE_URL) {
         app.use(logVisits);
     }
 
@@ -48,7 +48,7 @@ function start() {
     require('./app/routes/league.routes')(app);
     require('./app/routes/trade.routes')(app);
     require('./app/routes/ringOfFire.routes')(app);
-    require('./app/routes/dynastyrankings.routes')(app)
+    require('./app/routes/logs.routes')(app)
 
     app.get('*', async (req, res) => {
         res.sendFile(path.join(__dirname, '../client/build/index.html'));
