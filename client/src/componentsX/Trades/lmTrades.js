@@ -30,6 +30,7 @@ const LmTrades = ({
                     s => s.player === trades.lmTrades.searched_player.id
                         && s.manager === trades.lmTrades.searched_manager.id
                         && s.hash === hash
+                        && s.trade_date === trades.trade_date
                 )?.trades
             || []
         )

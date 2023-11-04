@@ -47,6 +47,16 @@ const TableMain = ({
 
     }, [itemActiveRef, itemActive])
 
+    useEffect(() => {
+        if (page !== 1 && body && !body
+            ?.filter(x => x)
+            ?.slice(Math.max(((page || 1) - 1) * 25, 0), (((page || 1) - 1) * 25) + 25)
+            ?.length > 0
+        ) {
+            setPage(1)
+        }
+
+    }, [body, page])
 
     return <>
         {
@@ -149,8 +159,8 @@ const TableMain = ({
                 }
             </thead>
             {
-                !(page > 1) ? null :
-                    <tbody>
+                body.length > 0 && page > 1
+                    ? <tbody>
                         <tr
                             className={'click'}
                             onClick={() => setPage(page - 1)}
@@ -158,6 +168,8 @@ const TableMain = ({
                             <td colSpan={headers[0].reduce((acc, cur) => acc + (cur.colSpan || 0), 0)}>PREV PAGE</td>
                         </tr>
                     </tbody>
+                    : null
+
 
             }
             {
@@ -241,7 +253,12 @@ const TableMain = ({
                     </tbody>
             }
             {
-                (((page - 1) * 25) + 25) < body?.length || partial ?
+                body
+                    ?.filter(x => x)
+                    ?.slice(Math.max(((page || 1) - 1) * 25, 0), (((page || 1) - 1) * 25) + 25)
+                    ?.length > 0
+
+                    && ((((page - 1) * 25) + 25) < body?.length || partial) ?
                     <tbody>
                         <tr
                             className={'click'}

@@ -57,7 +57,15 @@ const tradesReducer = (state = initialState, action) => {
                 isLoading: false
             };
         case 'FETCH_FILTERED_LMTRADES_SUCCESS':
-            existing_trades = state.lmTrades.searches.find(s => s.player === action.payload.player && s.manager === action.payload.manager)?.trades || []
+            existing_trades = state.lmTrades.searches
+                .find(
+                    s => s.player === action.payload.player
+                        && s.manager === action.payload.manager
+                        && s.hash === action.payload.hash
+                        && s.trade_date === action.payload.trade_date
+                )
+                ?.trades
+                || []
 
             new_trades = action.payload.trades.filter(new_trade => !existing_trades.find(old_trade => new_trade.transaction_id === old_trade.transaction_id))
 
@@ -66,7 +74,8 @@ const tradesReducer = (state = initialState, action) => {
                 manager: action.payload.manager,
                 count: action.payload.count,
                 trades: [...existing_trades, ...new_trades],
-                hash: action.payload.hash
+                hash: action.payload.hash,
+                trade_date: action.payload.trade_date
             }
 
             return {
@@ -74,7 +83,18 @@ const tradesReducer = (state = initialState, action) => {
                 isLoading: false,
                 lmTrades: {
                     ...state.lmTrades,
-                    searches: [...state.lmTrades.searches.filter(s => !(s.player === action.payload.player && s.manager === action.payload.manager)), updated_search]
+                    searches: [
+                        ...state.lmTrades.searches
+                            .filter(
+                                s => !(
+                                    s.player === action.payload.player
+                                    && s.manager === action.payload.manager
+                                    && s.hash === action.payload.hash
+                                    && s.trade_date === action.payload.trade_date
+                                )
+                            ),
+                        updated_search
+                    ]
                 }
             };
         case 'FETCH_PRICECHECKTRADES_SUCCESS':

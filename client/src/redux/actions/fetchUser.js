@@ -261,7 +261,8 @@ export const fetchFilteredLmTrades = (searchedPlayerId, searchedManagerId, leagu
                 manager: searchedManagerId,
                 trades: trades_tips,
                 count: trades.data.count,
-                hash: hash
+                hash: hash,
+                trade_date: trade_date
             },
         });
     } catch (error) {

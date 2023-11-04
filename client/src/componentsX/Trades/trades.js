@@ -18,10 +18,25 @@ const Trades = () => {
 
 
     useEffect(() => {
-        if (trades.tab.primary === 'Leaguemate Trades') {
+        if (
+            trades.tab.primary === 'Leaguemate Trades' && !(
+                trades.lmTrades.searched_player.id
+                || trades.lmTrades.searched_manager.id
+            )
+        ) {
             dispatch(fetchLmTrades(user_id, leagues, state.league_season, 0, 125, hash, trades.trade_date))
         }
-    }, [user_id, leagues, state.league_season, hash, trades.trade_date, dispatch])
+    }, [
+        user_id,
+        leagues,
+        state.league_season,
+        hash,
+        trades.trade_date,
+        trades.tab.primary,
+        trades.lmTrades.searched_player.id,
+        trades.lmTrades.searched_manager.id,
+        dispatch
+    ])
 
     useEffect(() => {
         if (
@@ -33,12 +48,13 @@ const Trades = () => {
                     s => s.player === trades.lmTrades.searched_player.id
                         && s.manager === trades.lmTrades.searched_manager.id
                         && s.hash === hash
+                        && s.trade_date === trades.trade_date
                 ) && !trades.isLoading
         ) {
             console.log('fetching filtered lm trades')
             dispatch(fetchFilteredLmTrades(trades.lmTrades.searched_player.id, trades.lmTrades.searched_manager.id, state.league_season, 0, 125, hash, trades.trade_date))
         }
-    }, [trades.lmTrades.searched_player, trades.lmTrades.searched_manager, trades.lmTrades.searches, dispatch])
+    }, [trades.lmTrades.searched_player, trades.lmTrades.searched_manager, trades.lmTrades.searches, hash, trades.trade_date, dispatch])
 
 
     useEffect(() => {

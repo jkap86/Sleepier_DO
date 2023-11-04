@@ -27,7 +27,7 @@ const PcTrades = ({
             .slice((trades.pricecheckTrades.page - 1) * 25, ((trades.pricecheckTrades.page - 1) * 25) + 25)
             .flatMap(t => Object.keys(t.adds))
 
-        dispatch(fetchPV(player_ids))
+        player_ids.length > 0 && dispatch(fetchPV(player_ids))
     }, [tradesDisplay, trades.pricecheckTrades.page, dispatch])
 
     const trades_body = tradesDisplay
