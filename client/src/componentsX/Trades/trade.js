@@ -18,7 +18,19 @@ const Trade = ({
         ? 'sf'
         : 'oneqb'
 
+    const no_qb = trade['league.roster_positions']
+        .filter(p => p === 'QB')
+        .length
 
+    const no_sf = trade['league.roster_positions']
+        .filter(p => p === 'SUPER_FLEX')
+        .length
+
+    const no_te = trade['league.roster_positions']
+        .filter(p => p === 'TE')
+        .length
+
+    const te_prem = trade['league.scoring_settings']?.bonus_rec_te || 0
 
     const getTradeValue = (player_id, date, type) => {
 
@@ -53,21 +65,32 @@ const Trade = ({
                     list: [
                         {
                             text: new Date(parseInt(trade.status_updated)).toLocaleDateString('en-US') + ' ' + new Date(parseInt(trade.status_updated)).toLocaleTimeString('en-US', { hour: "2-digit", minute: "2-digit" }),
-                            colSpan: 4,
+                            colSpan: 3,
                             className: 'small'
                         },
                         {
-                            text: trade['league.settings'].type === 2
-                                ? 'Dynasty'
-                                : trade['league.settings'].type === 1
-                                    ? 'Keeper'
-                                    : 'Redraft',
-                            colSpan: 1,
+                            text: <>
+                                < div>
+                                    {
+                                        trade['league.settings'].type === 2
+                                            ? 'Dynasty'
+                                            : trade['league.settings'].type === 1
+                                                ? 'Keeper'
+                                                : 'Redraft'
+                                    }
+                                </div>
+                                <div>
+                                    {trade['league.settings'].best_ball === 1
+                                        ? 'Bestball'
+                                        : 'Lineup'}
+                                </div>
+                            </>,
+                            colSpan: 2,
                             className: 'type'
                         },
                         {
                             text: trade['league.name'],
-                            colSpan: 7,
+                            colSpan: 8,
                             image: {
                                 src: trade?.['league.avatar'],
                                 alt: 'league avatar',
@@ -75,10 +98,15 @@ const Trade = ({
                             }
                         },
                         {
-                            text: trade['league.settings'].best_ball === 1
-                                ? 'Bestball'
-                                : 'Lineup',
-                            colSpan: 1,
+                            text: <>
+                                <div>
+                                    {no_qb.toString()} QB {no_sf.toString()} SF
+                                </div>
+                                <div>
+                                    {no_te.toString()} TE {te_prem.toString()} Prem
+                                </div>
+                            </>,
+                            colSpan: 3,
                             className: 'type'
                         }
                     ]
@@ -145,7 +173,7 @@ const Trade = ({
                                         </p>
                                     </div>
                                 </div>,
-                                colSpan: 4,
+                                colSpan: 5,
                                 className: 'left trade_manager'
                             },
                             {
@@ -264,7 +292,7 @@ const Trade = ({
                                         }
                                     </tbody>
                                 </table>,
-                                colSpan: 5,
+                                colSpan: 6,
                                 rowSpan: 2,
                                 className: 'small'
                             },
@@ -324,7 +352,7 @@ const Trade = ({
                                         }
                                     </tbody>
                                 </table>,
-                                colSpan: 4,
+                                colSpan: 5,
                                 rowSpan: 2,
                                 className: 'small'
                             }
