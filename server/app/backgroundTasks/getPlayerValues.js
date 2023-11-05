@@ -176,7 +176,7 @@ module.exports = async (app) => {
                         && parseInt(game.gameSecondsRemaining) < 3600
                     )
                 )
-            if (games_in_progress) {
+            if (games_in_progress && new Date().getUTCHours() < 23) {
                 console.log('Skipping KTC values update - games in progress...')
             } else {
                 await getDailyValues()
