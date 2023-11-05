@@ -27,7 +27,7 @@ module.exports = async (app) => {
 
             if (process.env.HEROKU) {
                 await getAllPlayers();
-                await getSchedule();
+
             }
 
             await getState(app);
